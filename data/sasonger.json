@@ -1,0 +1,26 @@
+{
+  "standard": "2026-27",
+  "sasonger": [
+    { "id": "2026-27", "namn": "2026/27", "fil": "data/sasong-2026-27.json" }
+  ],
+  "sporter": {
+    "langd":      { "namn": "Längdskidor", "kort": "Längd" },
+    "skidskytte": { "namn": "Skidskytte",  "kort": "Skidskytte" }
+  },
+  "serier": {
+    "vc":      { "namn": "Världscupen",    "kort": "VC",   "farg": "#2f7de1" },
+    "vm":      { "namn": "VM",             "kort": "VM",   "farg": "#d4a017" },
+    "tds":     { "namn": "Tour de Ski",    "kort": "TdS",  "farg": "#d64545" },
+    "sm":      { "namn": "SM",             "kort": "SM",   "farg": "#1f9d6b" },
+    "sc":      { "namn": "Ski Classics",   "kort": "SC",   "farg": "#8a5cd6" },
+    "vasa":    { "namn": "Vasaloppet",     "kort": "Vasa", "farg": "#e07a1f" },
+    "premiar": { "namn": "Sverigepremiär", "kort": "Prem", "farg": "#4aa3b5" }
+  },
+  "klasser": {
+    "D": "Damer", "H": "Herrar", "DH": "Damer & herrar", "Mix": "Mixed"
+  },
+  "lander": {
+    "SWE": "🇸🇪", "NOR": "🇳🇴", "FIN": "🇫🇮", "AUT": "🇦🇹", "FRA": "🇫🇷", "GER": "🇩🇪",
+    "ITA": "🇮🇹", "SUI": "🇨🇭", "SLO": "🇸🇮", "CZE": "🇨🇿", "EST": "🇪🇪"
+  }
+}

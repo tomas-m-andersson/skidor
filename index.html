@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Skidor på TV</title>
+  <meta name="description" content="TV-tablå och kalender för längdskidor, skidskytte, Ski Classics och Vasaloppet.">
+  <meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Skidor">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Sätt tema innan sidan ritas, så den inte blinkar
+    try { var t = localStorage.getItem('skidor.tema'); if (t === 'ljus' || t === 'mork') document.documentElement.dataset.theme = t === 'ljus' ? 'light' : 'dark'; } catch (e) {}
+  </script>
+</head>
+<body>
+  <header class="topp">
+    <div class="topp-rad">
+      <a class="logo" href="./" aria-label="Skidor på TV">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 24 L28 18" /><path d="M6 28 L28 22.5" /><circle cx="18" cy="7" r="3"/></svg>
+        <span>Skidor<b>på TV</b></span>
+      </a>
+      <label class="sasong">
+        <span class="sr">Säsong</span>
+        <select id="sasong" aria-label="Säsong"></select>
+      </label>
+      <button class="ikonknapp" id="oppnaInst" aria-label="Inställningar">
+        <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+      </button>
+    </div>
+    <nav class="flikar" role="tablist">
+      <button role="tab" data-vy="tabla" aria-selected="true">Tablå</button>
+      <button role="tab" data-vy="kalender">Kalender</button>
+      <button role="tab" data-vy="mina">Påminnelser <span class="raknare" id="minaAntal" hidden></span></button>
+    </nav>
+    <div class="filter" id="filter" aria-label="Filter"></div>
+  </header>
+
+  <main id="innehall" tabindex="-1">
+    <p class="laddar">Laddar tablå…</p>
+  </main>
+
+  <footer class="fot" id="fot"></footer>
+
+  <!-- Inställningar -->
+  <dialog id="inst" class="ark">
+    <form method="dialog" class="ark-inre">
+      <div class="ark-huvud">
+        <h2>Inställningar</h2>
+        <button class="ikonknapp" value="stang" aria-label="Stäng">✕</button>
+      </div>
+
+      <fieldset>
+        <legend>Utseende</legend>
+        <div class="segment" id="temaVal">
+          <label><input type="radio" name="tema" value="auto"><span>Auto</span></label>
+          <label><input type="radio" name="tema" value="ljus"><span>Ljust</span></label>
+          <label><input type="radio" name="tema" value="mork"><span>Mörkt</span></label>
+        </div>
+        <p class="hjalp">Auto följer mobilens/datorns inställning.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Påminnelser</legend>
+        <label class="rad">Påminn mig
+          <select id="forvarning">
+            <option value="5">5 min före</option>
+            <option value="15">15 min före</option>
+            <option value="30">30 min före</option>
+            <option value="60">1 timme före</option>
+            <option value="120">2 timmar före</option>
+          </select>
+        </label>
+        <label class="rad"><span>Aviseringar i webbläsaren<small>Fungerar när sidan/appen är öppen</small></span>
+          <input type="checkbox" id="notiser" class="vaxel">
+        </label>
+        <p class="hjalp">Säkrast är att lägga påminnelsen i mobilens kalender – då larmar den även när sidan är stängd.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Tablå</legend>
+        <label class="rad">Visa sändningar som redan varit
+          <input type="checkbox" id="visaPasserade" class="vaxel">
+        </label>
+        <label class="rad">Visa bara sändningar med klar tid
+          <input type="checkbox" id="baraTid" class="vaxel">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Data</legend>
+        <p class="hjalp" id="datainfo"></p>
+        <ul class="kallor" id="kallor"></ul>
+        <button type="button" class="knapp fara" id="rensa">Ta bort alla påminnelser</button>
+      </fieldset>
+    </form>
+  </dialog>
+
+  <!-- Händelsedetaljer -->
+  <dialog id="detalj" class="ark">
+    <div class="ark-inre" id="detaljInre"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

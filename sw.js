@@ -1,8 +1,8 @@
 // Service worker: gör sidan installerbar och läsbar utan nät.
 // Nätet först för ALLA filer – den sparade kopian används bara när man saknar nät.
 // Byt versionsnumret när du ändrat filer (samma nummer som ?v= i index.html).
-const VERSION = 'skidor-v6';
-const SKAL = ['./', 'index.html', 'styles.css?v=6', 'app.js?v=6', 'manifest.webmanifest?v=6', 'icon.svg?v=6', 'icon-192.png?v=6', 'apple-touch-icon.png?v=6'];
+const VERSION = 'skidor-v7';
+const SKAL = ['./', 'index.html', 'styles.css?v=7', 'app.js?v=7', 'manifest.webmanifest?v=7', 'icon.svg?v=7', 'icon-192.png?v=7', 'apple-touch-icon.png?v=7'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -23,6 +23,19 @@ self.addEventListener('fetch', (e) => {
       return r;
     }).catch(() => caches.match(e.request).then((t) => t || caches.match('index.html')))
   );
+});
+// Push från push-tjänsten → visa notisen
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { text: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.titel || 'SKIDOR', {
+    body: d.text || '',
+    tag: d.tag || 'skidor',
+    icon: 'icon-192.png?v=7',
+    badge: 'badge-96.png?v=7',
+    vibrate: [120, 60, 120],
+    data: { url: './#mina' }
+  }));
 });
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();

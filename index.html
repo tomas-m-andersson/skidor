@@ -7,9 +7,9 @@
   <meta name="description" content="TV-tablå och kalender för längdskidor, skidskytte, Ski Classics och Vasaloppet.">
   <meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
-  <link rel="manifest" href="manifest.webmanifest?v=6">
-  <link rel="icon" href="icon.svg?v=6" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=6">
+  <link rel="manifest" href="manifest.webmanifest?v=7">
+  <link rel="icon" href="icon.svg?v=7" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=7">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
   <script>
     // Sätt tema innan sidan ritas, så den inte blinkar
     try { var t = localStorage.getItem('skidor.tema'); if (t === 'ljus' || t === 'mork') document.documentElement.dataset.theme = t === 'ljus' ? 'light' : 'dark'; } catch (e) {}
@@ -27,7 +27,7 @@
   <header class="topp">
     <div class="topp-rad">
       <a class="logo" href="./" aria-label="SKIDOR">
-        <img src="icon.svg?v=6" alt="" width="34" height="34">
+        <img src="icon.svg?v=7" alt="" width="34" height="34">
         <span>SKIDOR</span>
       </a>
       <label class="sasong">
@@ -86,10 +86,20 @@
             <option value="120">2 timmar före</option>
           </select>
         </label>
-        <label class="rad"><span>Aviseringar i webbläsaren<small>Fungerar när sidan/appen är öppen</small></span>
-          <input type="checkbox" id="notiser" class="vaxel">
+        <label class="rad"><span>Push-notiser<small id="pushInfo">Kommer även när appen är stängd</small></span>
+          <input type="checkbox" id="push" class="vaxel">
         </label>
-        <p class="hjalp">Säkrast är att lägga påminnelsen i mobilens kalender – då larmar den även när sidan är stängd.</p>
+        <button type="button" class="knapp liten" id="pushTest" hidden style="margin-top:10px">🔔 Skicka testnotis</button>
+        <p class="hjalp">Tryck på klockan vid en sändning så får du en notis innan den börjar. Sändningar utan klar tid får en notis kl. 08.00 samma dag.</p>
+        <details class="hjalp" id="pushBrave" hidden>
+          <summary>Använder du Brave? Läs här om notiserna inte kommer</summary>
+          <ol class="steg">
+            <li><b>Windows:</b> skriv <code>brave://settings/privacy</code> i adressfältet och tryck Enter.</li>
+            <li>Slå på <b>Använd Googles tjänster för pushmeddelanden</b> (Use Google services for push messaging) och starta om Brave.</li>
+            <li><b>Android:</b> kontrollera att Brave får visa aviseringar: Inställningar i telefonen → <b>Appar</b> → <b>Brave</b> → <b>Aviseringar</b> → på.</li>
+            <li>Stäng av och slå på <b>Push-notiser</b> här igen och tryck på <b>Skicka testnotis</b>.</li>
+          </ol>
+        </details>
       </fieldset>
 
       <fieldset>
@@ -129,6 +139,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

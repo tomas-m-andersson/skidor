@@ -11,6 +11,8 @@ Mobilanpassad samlingssida för längdskidor, skidskytte, Tour de Ski, VM, SM, S
 | `app.js` | All logik: tablå, kalender, filter, påminnelser, kalenderfiler |
 | `data/sasonger.json` | Lista över säsonger + namn och färger för serierna |
 | `data/sasong-2026-27.json` | **All tävlings- och TV-data för 2026/27** |
+| `config.json` | Adressen till push-tjänsten |
+| `push/` | Push-tjänsten (Cloudflare Worker) och guide |
 | `sw.js`, `manifest.webmanifest`, `icon*` | Gör att sidan kan installeras som app på mobilen |
 
 ## Uppdatera en sändning (t.ex. när Viaplay släpper tider)
@@ -57,8 +59,9 @@ Mobilanpassad samlingssida för längdskidor, skidskytte, Tour de Ski, VM, SM, S
 
 ## Påminnelser
 
+- **Push-notiser** (Inställningar → Push-notiser) kommer även när appen är stängd. Kräver push-tjänsten i mappen `push/` – se **[push/GUIDE.md](push/GUIDE.md)**. Adressen till tjänsten står i `config.json`.
+
 - **Klockan 🔔** sparar sändningen under fliken *Påminnelser* (sparas i den här webbläsaren).
 - **Lägg i kalendern** laddar ner en kalenderfil (.ics) med larm – öppna den så läggs sändningen in i mobilens kalender. Larmet fungerar även när sidan är stängd.
-- **Aviseringar i webbläsaren** (under Inställningar) fungerar bara när sidan/appen är öppen.
 
 Alla tider är svensk tid. Källor finns under Inställningar på sidan.

@@ -27,11 +27,11 @@
     sporter: new Set(lagra.hamta('sporter', [])),
     serier: new Set(lagra.hamta('serier', [])),
     paminn: new Set(lagra.hamta('paminn', [])),
-    aviserade: new Set(lagra.hamta('aviserade', [])),
     forvarning: lagra.hamta('forvarning', 15),
     visaPasserade: lagra.hamta('visaPasserade', false),
     baraTid: lagra.hamta('baraTid', false),
-    notiser: lagra.hamta('notiser', false),
+    push: lagra.hamta('push', false),
+    pushUrl: '',
     kalManad: null,  // "2027-01"
     kalDag: null,    // "2027-01-14"
     visaTidigare: false
@@ -375,6 +375,7 @@
     if (st.paminn.has(id)) { st.paminn.delete(id); toast('Påminnelse borttagen'); }
     else { st.paminn.add(id); toast('Sparad under Påminnelser 🔔'); }
     lagra.spara('paminn', [...st.paminn]);
+    pushSynka();
     const y = scrollY;
     rita();
     scrollTo({ top: y });
@@ -494,26 +495,81 @@
     return 'https://calendar.google.com/calendar/render?' + p.toString();
   }
 
-  // ---------- Aviseringar i webbläsaren (när sidan är öppen) ----------
-  async function kollaAviseringar() {
-    if (!st.notiser || !('Notification' in window) || Notification.permission !== 'granted') return;
-    const nu = Date.now();
-    for (const e of st.handelser) {
-      if (!e.start || !st.paminn.has(e.id) || st.aviserade.has(e.id)) continue;
-      const start = startTid(e).getTime();
-      if (nu >= start - st.forvarning * 60e3 && nu < start + 30 * 60e3) {
-        st.aviserade.add(e.id);
-        lagra.spara('aviserade', [...st.aviserade]);
-        const titel = `${visaTid(e.start)} ${e.kanal?.join('/') || ''}`.trim();
-        const opt = { body: kortNamn(e), tag: e.id, icon: 'icon-192.png' };
-        try {
-          const reg = await navigator.serviceWorker?.getRegistration();
-          reg ? reg.showNotification(titel, opt) : new Notification(titel, opt);
-        } catch { /* ignoreras */ }
-      }
-    }
+  // ---------- Push-notiser (via push-tjänsten på Cloudflare) ----------
+  // Adressen till tjänsten står i config.json ("pushServer").
+  const pushStod = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const tillUint8 = (b64) => {
+    const s = atob(b64.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((b64.length + 3) % 4));
+    return Uint8Array.from(s, (c) => c.charCodeAt(0));
+  };
+  async function pushAnrop(vag, kropp) {
+    const r = await fetch(st.pushUrl + vag, kropp ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(kropp) } : {});
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.fel || data.info || `Fel ${r.status}`);
+    return data;
   }
-  setInterval(kollaAviseringar, 30e3);
+  async function hamtaSub(skapa) {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (sub || !skapa) return sub;
+    const { publicKey } = await pushAnrop('/nyckel');
+    try {
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: tillUint8(publicKey) });
+    } catch (fel) {
+      const gammal = await reg.pushManager.getSubscription();
+      if (gammal) { await gammal.unsubscribe(); sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: tillUint8(publicKey) }); }
+      else throw fel;
+    }
+    return sub;
+  }
+  function pushPaminnelser() {
+    const nu = Date.now();
+    const ut = [];
+    for (const e of st.handelser) {
+      if (!st.paminn.has(e.id) || arPasserad(e)) continue;
+      let at, titel;
+      if (e.start) {
+        const start = startTid(e).getTime();
+        at = Math.max(start - st.forvarning * 60e3, nu + 60e3);
+        if (at > start) continue;
+        titel = `${visaTid(e.start)} ${e.kanal?.length ? e.kanal.join(' / ') : ''}`.trim();
+      } else {
+        at = tillDatum(e.datum, '08:00').getTime();
+        if (at < nu) continue;
+        titel = 'Idag (tid ej klar)';
+      }
+      ut.push({ id: e.id, at, titel, text: kortNamn(e) });
+    }
+    return ut;
+  }
+  let synkTimer;
+  function pushSynka() {
+    clearTimeout(synkTimer);
+    synkTimer = setTimeout(async () => {
+      if (!st.push || !st.pushUrl || !pushStod) return;
+      try {
+        const sub = await hamtaSub(true);
+        await pushAnrop('/synka', { sub: sub.toJSON(), paminnelser: pushPaminnelser() });
+      } catch (fel) { console.warn('Push-synk misslyckades', fel); }
+    }, 600);
+  }
+  function pushFelText(fel) {
+    const t = String(fel?.message || fel);
+    if (/push service|registration failed|AbortError|not supported/i.test(t) && navigator.brave) {
+      return 'Brave blockerar push. Se Inställningar → Push-notiser för hur du slår på det.';
+    }
+    return 'Push fungerade inte: ' + t;
+  }
+  function ritaPush() {
+    const vax = $('#push'), info = $('#pushInfo'), test = $('#pushTest'), brave = $('#pushBrave');
+    brave.hidden = !navigator.brave;
+    if (!st.pushUrl) { vax.disabled = true; vax.checked = false; info.textContent = 'Push-tjänsten är inte ansluten ännu'; test.hidden = true; return; }
+    if (!pushStod) { vax.disabled = true; vax.checked = false; info.textContent = 'Stöds inte i den här webbläsaren'; test.hidden = true; return; }
+    vax.disabled = false;
+    vax.checked = st.push;
+    info.textContent = !st.push && Notification.permission === 'denied' ? 'Blockerad – tillåt aviseringar för sidan i webbläsaren' : 'Kommer även när appen är stängd';
+    test.hidden = !vax.checked;
+  }
 
 
   // ---------- Installera som app ----------
@@ -559,7 +615,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=6" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=7" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -611,7 +667,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=6" alt="">
+      <img src="icon.svg?v=7" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>
@@ -631,7 +687,7 @@
     $('#forvarning').value = String(st.forvarning);
     $('#visaPasserade').checked = st.visaPasserade;
     $('#baraTid').checked = st.baraTid;
-    $('#notiser').checked = st.notiser && ('Notification' in window) && Notification.permission === 'granted';
+    ritaPush();
     const upd = st.sasong?.uppdaterad;
     $('#datainfo').textContent = `Säsong ${st.sasong?.sasong || ''} · ${st.handelser.length} sändningar/tävlingar${upd ? ' · data uppdaterad ' + fDagKort.format(utcDag(upd)).replace(/\.$/, '') : ''}. Alla tider är svensk tid.`;
     $('#kallor').innerHTML = (st.sasong?.kallor || []).map((k) => `<li><a href="${esc(k.url)}" target="_blank" rel="noopener">${esc(k.namn)}</a></li>`).join('');
@@ -644,18 +700,40 @@
     try { localStorage.setItem(LS + 'tema', ev.target.value); } catch { /* ignoreras */ }
     tillampaTema(ev.target.value);
   });
-  $('#forvarning').onchange = (ev) => { st.forvarning = Number(ev.target.value); lagra.spara('forvarning', st.forvarning); rita(); };
+  $('#forvarning').onchange = (ev) => { st.forvarning = Number(ev.target.value); lagra.spara('forvarning', st.forvarning); rita(); pushSynka(); };
   $('#visaPasserade').onchange = (ev) => { st.visaPasserade = ev.target.checked; lagra.spara('visaPasserade', st.visaPasserade); rita(); };
   $('#baraTid').onchange = (ev) => { st.baraTid = ev.target.checked; lagra.spara('baraTid', st.baraTid); rita(); };
-  $('#notiser').onchange = async (ev) => {
-    if (ev.target.checked) {
-      if (!('Notification' in window)) { ev.target.checked = false; return toast('Din webbläsare stöder inte aviseringar'); }
-      const svar = await Notification.requestPermission();
-      if (svar !== 'granted') { ev.target.checked = false; return toast('Aviseringar nekades i webbläsaren'); }
+  $('#push').onchange = async (ev) => {
+    const vax = ev.target;
+    if (vax.checked) {
+      vax.disabled = true;
+      try {
+        if (await Notification.requestPermission() !== 'granted') throw new Error('Du tillät inte aviseringar');
+        const sub = await hamtaSub(true);
+        await pushAnrop('/synka', { sub: sub.toJSON(), paminnelser: pushPaminnelser() });
+        st.push = true;
+        toast('Push-notiser är på 🔔 – testa gärna med knappen');
+      } catch (fel) {
+        st.push = false;
+        toast(pushFelText(fel));
+      }
+    } else {
+      st.push = false;
+      try {
+        const sub = await hamtaSub(false);
+        if (sub) { await pushAnrop('/avsluta', { endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe(); }
+      } catch { /* ignoreras */ }
+      toast('Push-notiser avstängda');
     }
-    st.notiser = ev.target.checked;
-    lagra.spara('notiser', st.notiser);
-    kollaAviseringar();
+    lagra.spara('push', st.push);
+    ritaPush();
+  };
+  $('#pushTest').onclick = async () => {
+    try {
+      const sub = await hamtaSub(true);
+      await pushAnrop('/test', { sub: sub.toJSON() });
+      toast('Testnotis skickad – den kommer om några sekunder');
+    } catch (fel) { toast(pushFelText(fel)); }
   };
   $('#rensa').onclick = () => {
     if (!st.paminn.size) return toast('Du har inga påminnelser');
@@ -663,6 +741,7 @@
     st.paminn.clear();
     lagra.spara('paminn', []);
     rita();
+    pushSynka();
     toast('Alla påminnelser borttagna');
   };
 
@@ -690,7 +769,8 @@
       rita();
       if (st.vy === 'tabla') scrollTillIdag();
       $('#fot').innerHTML = `Alla tider är svensk tid. Tider och kanaler kan ändras – kolla gärna kanalens egen tablå. Källor finns under Inställningar.`;
-      kollaAviseringar();
+      try { st.pushUrl = ((await hamtaJson('config.json')).pushServer || '').replace(/\/+$/, ''); } catch { /* ingen push */ }
+      pushSynka();
       setInterval(() => { if (!document.querySelector('dialog[open]')) { const y = scrollY; rita(); scrollTo({ top: y }); } }, 60e3);
     } catch (fel) {
       console.error(fel);

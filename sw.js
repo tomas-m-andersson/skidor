@@ -1,8 +1,8 @@
 // Service worker: gör sidan installerbar och läsbar utan nät.
 // Nätet först för ALLA filer – den sparade kopian används bara när man saknar nät.
 // Byt versionsnumret när du ändrat filer (samma nummer som ?v= i index.html).
-const VERSION = 'skidor-v3';
-const SKAL = ['./', 'index.html', 'styles.css?v=3', 'app.js?v=3', 'manifest.webmanifest?v=3', 'icon.svg?v=3', 'icon-192.png?v=3', 'apple-touch-icon.png?v=3'];
+const VERSION = 'skidor-v4';
+const SKAL = ['./', 'index.html', 'styles.css?v=4', 'app.js?v=4', 'manifest.webmanifest?v=4', 'icon.svg?v=4', 'icon-192.png?v=4', 'apple-touch-icon.png?v=4'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(

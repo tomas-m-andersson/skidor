@@ -523,8 +523,10 @@
   const arIOS = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
   const arAndroid = /android/i.test(ua);
   const arMobil = arIOS || arAndroid;
+  const arBrave = !!navigator.brave;
   const delaIkon = '<span class="sym"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg></span>';
   const plusIkon = '<span class="sym"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>';
+  const installIkon = '<span class="sym"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M12 8v6M9 11l3 3 3-3M8 20h8"/></svg></span>';
   const menyIkon = '<span class="sym"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></span>';
 
   addEventListener('beforeinstallprompt', (ev) => {
@@ -557,7 +559,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=3" alt=""><p><b>Skidor på TV</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=4" alt=""><p><b>Skidor på TV</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -575,16 +577,24 @@
       </ol>
       <p class="hjalp">På iPhone kan sidan inte installera sig själv med en knapp – Apple tillåter bara det här sättet.</p>`;
     } else if (arAndroid) {
-      steg = `<ol class="steg">
-        <li>Öppna sidan i <b>Chrome</b>.</li>
+      steg = arBrave ? `<ol class="steg">
+        <li>Tryck på menyn ${menyIkon} – i Brave ligger den oftast <b>längst ner till höger</b> (eller uppe till höger om du flyttat adressfältet upp).</li>
+        <li>Tryck på <b>Installera app</b> eller <b>Lägg till på startskärmen</b> (namnet varierar mellan Brave-versioner).</li>
+        <li>Tryck på <b>Installera</b> (eller <b>Lägg till</b>) i rutan som dyker upp.</li>
+        <li>Den runda ikonen hamnar på startskärmen. Den kan ha en liten Brave-symbol i hörnet – det är normalt.</li>
+      </ol>` : `<ol class="steg">
         <li>Tryck på menyn ${menyIkon} uppe till höger.</li>
         <li>Tryck på <b>Installera app</b> (kan heta <b>Lägg till på startskärmen</b>).</li>
         <li>Tryck på <b>Installera</b> i rutan som dyker upp.</li>
       </ol>`;
     } else {
-      steg = `<ol class="steg">
-        <li>Öppna sidan i <b>Chrome</b> eller <b>Edge</b>.</li>
-        <li>Klicka på installationsikonen ${plusIkon} längst till höger i adressfältet (eller menyn ${menyIkon} → <b>Installera Skidor på TV</b>).</li>
+      steg = arBrave ? `<ol class="steg">
+        <li>Titta längst till höger i <b>adressfältet</b> (där webbadressen står). Ser du en liten ikon av en skärm med en pil ${installIkon}? Klicka på den och sedan <b>Installera</b>. Klart!</li>
+        <li>Ingen ikon? Klicka på Braves meny <b>☰</b> (tre streck) uppe till höger.</li>
+        <li>Välj <b>Casta, spara och dela</b> → <b>Installera sidan som app…</b> (på engelska: <i>Cast, save and share → Install page as app</i>).</li>
+        <li>Klicka på <b>Installera</b>. Appen öppnas i ett eget fönster och finns sedan i Start-menyn – högerklicka på den i aktivitetsfältet och välj <b>Fäst i aktivitetsfältet</b> om du vill ha den där.</li>
+      </ol>` : `<ol class="steg">
+        <li>Klicka på installationsikonen ${installIkon} längst till höger i adressfältet (eller menyn ${menyIkon} → <b>Casta, spara och dela</b> → <b>Installera sidan som app</b>).</li>
         <li>Klicka på <b>Installera</b>.</li>
       </ol>`;
     }
@@ -600,10 +610,9 @@
 
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
-    if (!installPrompt && !arMobil) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=3" alt="">
-      <div><b>Installera som app</b>Snabbt från hemskärmen, i helskärm.</div>
+      <img src="icon.svg?v=4" alt="">
+      <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>
     </div>`;

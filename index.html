@@ -7,9 +7,9 @@
   <meta name="description" content="TV-tablå och kalender för längdskidor, skidskytte, Ski Classics och Vasaloppet.">
   <meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest?v=3">
+  <link rel="icon" href="icon.svg?v=3" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=3">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=3">
   <script>
     // Sätt tema innan sidan ritas, så den inte blinkar
     try { var t = localStorage.getItem('skidor.tema'); if (t === 'ljus' || t === 'mork') document.documentElement.dataset.theme = t === 'ljus' ? 'light' : 'dark'; } catch (e) {}
@@ -27,7 +27,7 @@
   <header class="topp">
     <div class="topp-rad">
       <a class="logo" href="./" aria-label="Skidor på TV">
-        <img src="icon.svg" alt="" width="34" height="34">
+        <img src="icon.svg?v=3" alt="" width="34" height="34">
         <span>Skidor<b>på TV</b></span>
       </a>
       <label class="sasong">
@@ -116,8 +116,19 @@
     <div class="ark-inre" id="detaljInre"></div>
   </dialog>
 
+  <!-- Installera som app -->
+  <dialog id="installDlg" class="ark">
+    <div class="ark-inre">
+      <div class="ark-huvud">
+        <h2>Installera appen</h2>
+        <button class="ikonknapp" id="stangInstall" aria-label="Stäng">✕</button>
+      </div>
+      <div id="installDlgInnehall"></div>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

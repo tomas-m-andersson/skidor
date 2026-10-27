@@ -541,39 +541,39 @@
 
   async function installera() {
     if (installPrompt) {
-      installPrompt.prompt();
-      const val = await installPrompt.userChoice;
+      try {
+        installPrompt.prompt();
+        const val = await installPrompt.userChoice;
+        if (val.outcome !== 'accepted') toast('Du kan installera senare under Inställningar');
+      } catch { /* ignoreras */ }
       installPrompt = null;
-      if (val.outcome !== 'accepted') toast('Du kan installera senare under Inställningar');
       ritaInstall(); rita();
       return;
     }
-    oppnaInst();
-    setTimeout(() => $('#installera').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    ritaInstall();
+    const dlg = $('#installDlg');
+    if ($('#inst').open) $('#inst').close();
+    if (!dlg.open) dlg.showModal();
   }
 
-  function ritaInstall() {
-    const el = $('#installInnehall');
-    if (!el) return;
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg" alt=""><p><b>Skidor på TV</b>${text}</p></div>`;
-    if (arInstallerad()) {
-      el.innerHTML = kort('✓ Du använder redan appen.');
-      return;
-    }
+  function installHtml() {
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=3" alt=""><p><b>Skidor på TV</b>${text}</p></div>`;
+    if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
-      el.innerHTML = kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
-        '<button type="button" class="knapp primar" id="installKnapp" style="width:100%;margin-top:10px">Installera appen</button>';
-      $('#installKnapp').onclick = installera;
-      return;
+      return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
+        '<button type="button" class="knapp primar install-nu" style="width:100%;margin-top:10px">Installera appen</button>';
     }
     let steg;
     if (arIOS) {
-      steg = `<ol class="steg">
-        <li>Öppna sidan i <b>Safari</b> (fungerar även i Chrome på nyare iPhone).</li>
-        <li>Tryck på <b>Dela</b>-knappen ${delaIkon} – i Safari längst ner i mitten (på iPad uppe till höger).</li>
-        <li>Scrolla ner i listan och tryck på <b>Lägg till på hemskärmen</b> ${plusIkon}.</li>
-        <li>Tryck på <b>Lägg till</b> uppe till höger. Nu ligger ikonen bland dina appar.</li>
-      </ol>`;
+      const inbyggd = !/safari/i.test(ua) || /fbav|instagram|gsa\//i.test(ua); // t.ex. Gmail/Facebook-länk
+      steg = (inbyggd ? '<p class="notis">Du har öppnat sidan inuti en annan app. Tryck på ⋯ eller kompassen och välj <b>Öppna i Safari</b> först.</p>' : '') +
+        `<ol class="steg">
+        <li>Sidan ska vara öppen i <b>Safari</b>.</li>
+        <li>Tryck på <b>Dela</b>-knappen ${delaIkon} – längst ner i mitten (på iPad uppe till höger). Ser du den inte? Tryck en gång längst ner på skärmen så visas verktygsraden.</li>
+        <li>Scrolla ner i listan som kommer upp och tryck på <b>Lägg till på hemskärmen</b> ${plusIkon}.</li>
+        <li>Tryck på <b>Lägg till</b> uppe till höger. Nu ligger den runda ikonen bland dina appar.</li>
+      </ol>
+      <p class="hjalp">På iPhone kan sidan inte installera sig själv med en knapp – Apple tillåter bara det här sättet.</p>`;
     } else if (arAndroid) {
       steg = `<ol class="steg">
         <li>Öppna sidan i <b>Chrome</b>.</li>
@@ -588,14 +588,21 @@
         <li>Klicka på <b>Installera</b>.</li>
       </ol>`;
     }
-    el.innerHTML = kort('Lägg sidan som en app – öppnas i helskärm och fungerar även utan nät.') + steg;
+    return kort('Lägg sidan som en app – öppnas i helskärm och fungerar även utan nät.') + steg;
   }
+
+  function ritaInstall() {
+    const html = installHtml();
+    for (const id of ['#installInnehall', '#installDlgInnehall']) { const el = $(id); if (el) el.innerHTML = html; }
+    document.querySelectorAll('.install-nu').forEach((b) => { b.onclick = installera; });
+  }
+  $('#stangInstall').onclick = () => $('#installDlg').close();
 
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     if (!installPrompt && !arMobil) return '';
     return `<div class="install-banner">
-      <img src="icon.svg" alt="">
+      <img src="icon.svg?v=3" alt="">
       <div><b>Installera som app</b>Snabbt från hemskärmen, i helskärm.</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>
@@ -684,6 +691,16 @@
   start();
 
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    // Hämta alltid nyaste versionen av sidan: uppdatera och ladda om en gång när ny version tagit över
+    let laddadOm = false;
+    const hadeGammal = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (laddadOm || !hadeGammal) return;
+      laddadOm = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+      .then((reg) => reg.update())
+      .catch(() => {});
   }
 })();

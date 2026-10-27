@@ -1,10 +1,15 @@
 // Service worker: gör sidan installerbar och läsbar utan nät.
-// Byt versionsnumret när du ändrat HTML/CSS/JS så att mobilerna hämtar nytt.
-const VERSION = 'skidor-v2';
-const SKAL = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+// Nätet först för ALLA filer – den sparade kopian används bara när man saknar nät.
+// Byt versionsnumret när du ändrat filer (samma nummer som ?v= i index.html).
+const VERSION = 'skidor-v3';
+const SKAL = ['./', 'index.html', 'styles.css?v=3', 'app.js?v=3', 'manifest.webmanifest?v=3', 'icon.svg?v=3', 'icon-192.png?v=3', 'apple-touch-icon.png?v=3'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SKAL)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(VERSION)
+      .then((c) => Promise.all(SKAL.map((u) => fetch(u, { cache: 'reload' }).then((r) => r.ok && c.put(u, r)).catch(() => {}))))
+      .then(() => self.skipWaiting())
+  );
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((n) => n !== VERSION).map((n) => caches.delete(n)))).then(() => self.clients.claim()));
@@ -12,17 +17,12 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
-  // Data och sidan: nätet först (så tablån alltid är färsk), annars cache
-  if (url.pathname.includes('/data/') || e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).then((r) => {
-      const kopia = r.clone();
-      caches.open(VERSION).then((c) => c.put(e.request, kopia));
+  e.respondWith(
+    fetch(e.request, { cache: 'no-cache' }).then((r) => {
+      if (r.ok) { const kopia = r.clone(); caches.open(VERSION).then((c) => c.put(e.request, kopia)); }
       return r;
-    }).catch(() => caches.match(e.request, { ignoreSearch: true })));
-    return;
-  }
-  // Övrigt: cache först
-  e.respondWith(caches.match(e.request).then((t) => t || fetch(e.request)));
+    }).catch(() => caches.match(e.request).then((t) => t || caches.match('index.html')))
+  );
 });
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();

@@ -1,4 +1,4 @@
-# skidor
+# SKIDOR
 
 Mobilanpassad samlingssida för längdskidor, skidskytte, Tour de Ski, VM, SM, Ski Classics och Vasaloppet – med TV-tablå, kalender och påminnelser. Allt på svenska.
 

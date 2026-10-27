@@ -1,6 +1,6 @@
 {
-  "name": "Skidor på TV",
-  "short_name": "Skidor",
+  "name": "skidor",
+  "short_name": "skidor",
   "description": "TV-tablå och kalender för längdskidor, skidskytte, Ski Classics och Vasaloppet.",
   "lang": "sv",
   "id": "./",
@@ -11,9 +11,9 @@
   "theme_color": "#0b1220",
   "categories": ["sports", "entertainment"],
   "icons": [
-    { "src": "icon-192.png?v=4", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png?v=4", "sizes": "512x512", "type": "image/png" },
-    { "src": "icon-maskable-512.png?v=4", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "icon.svg?v=4", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "icon-192.png?v=5", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png?v=5", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png?v=5", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg?v=5", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

@@ -1,4 +1,4 @@
-/* Skidor på TV – all logik i en fil.
+/* skidor – all logik i en fil.
    Datan ligger i data/sasonger.json (lista över säsonger + färger/namn)
    och i en fil per säsong, t.ex. data/sasong-2026-27.json.
    Alla tider i datan är svensk tid. */
@@ -438,8 +438,8 @@
   function skapaIcs(lista) {
     const nu = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
     const rader = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Skidor på TV//SV', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
-      'X-WR-CALNAME:Skidor på TV', 'X-WR-TIMEZONE:Europe/Stockholm',
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//skidor//SV', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+      'X-WR-CALNAME:skidor', 'X-WR-TIMEZONE:Europe/Stockholm',
       'BEGIN:VTIMEZONE', 'TZID:Europe/Stockholm',
       'BEGIN:DAYLIGHT', 'TZOFFSETFROM:+0100', 'TZOFFSETTO:+0200', 'TZNAME:CEST', 'DTSTART:19700329T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU', 'END:DAYLIGHT',
       'BEGIN:STANDARD', 'TZOFFSETFROM:+0200', 'TZOFFSETTO:+0100', 'TZNAME:CET', 'DTSTART:19701025T030000', 'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU', 'END:STANDARD',
@@ -559,7 +559,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=4" alt=""><p><b>Skidor på TV</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=5" alt=""><p><b>skidor</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -611,7 +611,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=4" alt="">
+      <img src="icon.svg?v=5" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>

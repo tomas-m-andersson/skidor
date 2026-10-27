@@ -9,8 +9,10 @@
   <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Skidor">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +27,7 @@
   <header class="topp">
     <div class="topp-rad">
       <a class="logo" href="./" aria-label="Skidor på TV">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 24 L28 18" /><path d="M6 28 L28 22.5" /><circle cx="18" cy="7" r="3"/></svg>
+        <img src="icon.svg" alt="" width="34" height="34">
         <span>Skidor<b>på TV</b></span>
       </a>
       <label class="sasong">
@@ -57,6 +59,11 @@
         <h2>Inställningar</h2>
         <button class="ikonknapp" value="stang" aria-label="Stäng">✕</button>
       </div>
+
+      <fieldset id="installera">
+        <legend>Installera som app</legend>
+        <div id="installInnehall"></div>
+      </fieldset>
 
       <fieldset>
         <legend>Utseende</legend>

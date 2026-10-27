@@ -57,9 +57,8 @@ a { color: var(--accent); }
 .topp-rad, .flikar, .filter, main, .fot { max-width: 920px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
 .topp-rad { display: flex; align-items: center; gap: 10px; height: 56px; }
 .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); margin-right: auto; }
-.logo svg { width: 28px; height: 28px; fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linecap: round; }
-.logo svg circle { fill: var(--accent); stroke: none; }
-.logo span { font: 700 22px/1 var(--font-k); letter-spacing: .02em; text-transform: uppercase; }
+.logo img { width: 34px; height: 34px; display: block; filter: drop-shadow(0 1px 2px rgba(0,0,0,.18)); }
+.logo span { font: 700 22px/1 var(--font-k); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
 .logo b { font-weight: 500; color: var(--text2); margin-left: 5px; }
 .sasong select {
   appearance: none; background: var(--yta); border: 1px solid var(--linje); border-radius: 10px;
@@ -237,10 +236,33 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
 }
 .toast.syns { transform: translate(-50%, 0); visibility: visible; }
 
-@media (max-width: 400px) { .flikar button { font-size: 15px; letter-spacing: .02em; } }
+@media (max-width: 400px) {
+  .flikar button { font-size: 15px; letter-spacing: .02em; }
+  .logo span { font-size: 20px; }
+  .logo img { width: 30px; height: 30px; }
+  .topp-rad { gap: 8px; }
+}
 @media (min-width: 760px) {
   .flikar { justify-content: flex-start; }
   .flikar button { flex: none; padding-left: 14px; padding-right: 14px; }
   .kort { grid-template-columns: 80px 1fr auto; padding: 14px 12px 14px 18px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ===== Installera ===== */
+.install-kort { display: flex; gap: 12px; align-items: center; background: var(--yta2); border-radius: 12px; padding: 12px; }
+.install-kort img { width: 52px; height: 52px; flex: none; }
+.install-kort p { margin: 0; font-size: 14px; color: var(--text2); }
+.install-kort b { display: block; color: var(--text); font-size: 16px; }
+.steg { margin: 10px 0 0; padding-left: 22px; font-size: 15px; }
+.steg li { margin: 6px 0; }
+.steg .sym { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: var(--yta2); vertical-align: -6px; }
+.steg .sym svg { width: 16px; height: 16px; fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.install-banner {
+  display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px 12px;
+  background: var(--yta); border: 1px solid var(--linje); border-radius: var(--radie); box-shadow: var(--skugga);
+}
+.install-banner img { width: 40px; height: 40px; flex: none; }
+.install-banner div { flex: 1; font-size: 14px; color: var(--text2); line-height: 1.3; }
+.install-banner div b { display: block; color: var(--text); font-size: 15px; }
+.install-banner .stang { border: 0; background: none; color: var(--text3); font-size: 18px; width: 32px; height: 32px; }

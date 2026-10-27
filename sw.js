@@ -1,7 +1,7 @@
 // Service worker: gör sidan installerbar och läsbar utan nät.
 // Byt versionsnumret när du ändrat HTML/CSS/JS så att mobilerna hämtar nytt.
-const VERSION = 'skidor-v1';
-const SKAL = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png'];
+const VERSION = 'skidor-v2';
+const SKAL = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SKAL)).then(() => self.skipWaiting()));

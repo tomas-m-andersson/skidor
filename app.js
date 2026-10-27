@@ -209,7 +209,7 @@
     const visaGamla = st.visaPasserade || st.visaTidigare;
     const lista = visaGamla ? alla : alla.filter((e) => !arPasserad(e));
     const antalGamla = alla.length - lista.length;
-    let html = '';
+    let html = installBanner();
     if (antalGamla && !visaGamla) {
       html += `<button class="knapp liten visa-tidigare" id="visaTidigare">Visa ${antalGamla} tidigare sändningar</button>`;
     }
@@ -220,6 +220,10 @@
       html += `<section class="dag" data-dag="${dag}">${dagRubrik(dag)}<div class="lista">${ev.map(kortHtml).join('')}</div></section>`;
     }
     $('#innehall').innerHTML = html;
+    if ($('#bannerInstall')) {
+      $('#bannerInstall').onclick = installera;
+      $('#bannerStang').onclick = () => { lagra.spara('installDold', true); $('.install-banner').remove(); toast('Du hittar installationen under Inställningar'); };
+    }
     const knapp = $('#visaTidigare');
     if (knapp) knapp.onclick = () => { st.visaTidigare = true; rita(); scrollTillIdag(); };
   }
@@ -511,6 +515,93 @@
   }
   setInterval(kollaAviseringar, 30e3);
 
+
+  // ---------- Installera som app ----------
+  let installPrompt = null;
+  const arInstallerad = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const ua = navigator.userAgent;
+  const arIOS = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+  const arAndroid = /android/i.test(ua);
+  const arMobil = arIOS || arAndroid;
+  const delaIkon = '<span class="sym"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11v9h12v-9"/></svg></span>';
+  const plusIkon = '<span class="sym"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></span>';
+  const menyIkon = '<span class="sym"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></span>';
+
+  addEventListener('beforeinstallprompt', (ev) => {
+    ev.preventDefault();
+    installPrompt = ev;
+    ritaInstall();
+    if (st.vy === 'tabla' && st.handelser.length) { const y = scrollY; rita(); scrollTo({ top: y }); }
+  });
+  addEventListener('appinstalled', () => {
+    installPrompt = null;
+    toast('Appen är installerad – hitta den på hemskärmen ⛷️');
+    ritaInstall();
+  });
+
+  async function installera() {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const val = await installPrompt.userChoice;
+      installPrompt = null;
+      if (val.outcome !== 'accepted') toast('Du kan installera senare under Inställningar');
+      ritaInstall(); rita();
+      return;
+    }
+    oppnaInst();
+    setTimeout(() => $('#installera').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+
+  function ritaInstall() {
+    const el = $('#installInnehall');
+    if (!el) return;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg" alt=""><p><b>Skidor på TV</b>${text}</p></div>`;
+    if (arInstallerad()) {
+      el.innerHTML = kort('✓ Du använder redan appen.');
+      return;
+    }
+    if (installPrompt) {
+      el.innerHTML = kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
+        '<button type="button" class="knapp primar" id="installKnapp" style="width:100%;margin-top:10px">Installera appen</button>';
+      $('#installKnapp').onclick = installera;
+      return;
+    }
+    let steg;
+    if (arIOS) {
+      steg = `<ol class="steg">
+        <li>Öppna sidan i <b>Safari</b> (fungerar även i Chrome på nyare iPhone).</li>
+        <li>Tryck på <b>Dela</b>-knappen ${delaIkon} – i Safari längst ner i mitten (på iPad uppe till höger).</li>
+        <li>Scrolla ner i listan och tryck på <b>Lägg till på hemskärmen</b> ${plusIkon}.</li>
+        <li>Tryck på <b>Lägg till</b> uppe till höger. Nu ligger ikonen bland dina appar.</li>
+      </ol>`;
+    } else if (arAndroid) {
+      steg = `<ol class="steg">
+        <li>Öppna sidan i <b>Chrome</b>.</li>
+        <li>Tryck på menyn ${menyIkon} uppe till höger.</li>
+        <li>Tryck på <b>Installera app</b> (kan heta <b>Lägg till på startskärmen</b>).</li>
+        <li>Tryck på <b>Installera</b> i rutan som dyker upp.</li>
+      </ol>`;
+    } else {
+      steg = `<ol class="steg">
+        <li>Öppna sidan i <b>Chrome</b> eller <b>Edge</b>.</li>
+        <li>Klicka på installationsikonen ${plusIkon} längst till höger i adressfältet (eller menyn ${menyIkon} → <b>Installera Skidor på TV</b>).</li>
+        <li>Klicka på <b>Installera</b>.</li>
+      </ol>`;
+    }
+    el.innerHTML = kort('Lägg sidan som en app – öppnas i helskärm och fungerar även utan nät.') + steg;
+  }
+
+  function installBanner() {
+    if (arInstallerad() || lagra.hamta('installDold', false)) return '';
+    if (!installPrompt && !arMobil) return '';
+    return `<div class="install-banner">
+      <img src="icon.svg" alt="">
+      <div><b>Installera som app</b>Snabbt från hemskärmen, i helskärm.</div>
+      <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
+      <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>
+    </div>`;
+  }
+
   // ---------- Inställningar ----------
   function tillampaTema(t) {
     if (t === 'ljus') document.documentElement.dataset.theme = 'light';
@@ -528,7 +619,8 @@
     const upd = st.sasong?.uppdaterad;
     $('#datainfo').textContent = `Säsong ${st.sasong?.sasong || ''} · ${st.handelser.length} sändningar/tävlingar${upd ? ' · data uppdaterad ' + fDagKort.format(utcDag(upd)).replace(/\.$/, '') : ''}. Alla tider är svensk tid.`;
     $('#kallor').innerHTML = (st.sasong?.kallor || []).map((k) => `<li><a href="${esc(k.url)}" target="_blank" rel="noopener">${esc(k.namn)}</a></li>`).join('');
-    $('#inst').showModal();
+    ritaInstall();
+    if (!$('#inst').open) $('#inst').showModal();
   }
   $('#oppnaInst').onclick = oppnaInst;
   $('#temaVal').addEventListener('change', (ev) => {
@@ -591,7 +683,7 @@
   }
   start();
 
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 })();

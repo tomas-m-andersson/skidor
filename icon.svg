@@ -1,8 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0b1220"/>
-  <rect x="96" y="120" width="320" height="210" rx="28" fill="none" stroke="#5aa2ff" stroke-width="22"/>
-  <path d="M200 380h112M256 330v50" stroke="#5aa2ff" stroke-width="22" stroke-linecap="round"/>
-  <path d="M138 290 L374 238" stroke="#e8eef8" stroke-width="16" stroke-linecap="round"/>
-  <path d="M150 312 L380 262" stroke="#e8eef8" stroke-width="16" stroke-linecap="round"/>
-  <circle cx="290" cy="178" r="26" fill="#e8eef8"/>
+  <defs>
+    <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1a3a"/>
+      <stop offset=".55" stop-color="#1d4f9c"/>
+      <stop offset="1" stop-color="#5fa6f0"/>
+    </linearGradient>
+    <linearGradient id="sno" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cfe3fb"/>
+    </linearGradient>
+    <linearGradient id="ram" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eaf3ff"/>
+      <stop offset="1" stop-color="#9fc2ec"/>
+    </linearGradient>
+    <clipPath id="skarm"><circle cx="256" cy="256" r="206"/></clipPath>
+  </defs>
+
+  <!-- Ram (TV-skärmens kant) -->
+  <circle cx="256" cy="256" r="250" fill="#0b1220"/>
+  <circle cx="256" cy="256" r="226" fill="url(#ram)"/>
+
+  <g clip-path="url(#skarm)">
+    <!-- Himmel -->
+    <rect width="512" height="512" fill="url(#himmel)"/>
+    <!-- Fjäll i bakgrunden -->
+    <path d="M30 330 L150 220 L205 262 L290 180 L400 280 L482 230 L482 512 L30 512Z" fill="#7fb2ec" opacity=".55"/>
+    <path d="M290 180 L318 206 L300 202 L286 214 L270 200Z" fill="#fff" opacity=".9"/>
+    <path d="M150 220 L172 240 L156 238 L146 248 L134 235Z" fill="#fff" opacity=".85"/>
+    <!-- Snöbacke -->
+    <path d="M30 352 C150 300 330 300 482 340 L482 512 L30 512Z" fill="url(#sno)"/>
+    <!-- Skidspår som försvinner bort i backen -->
+    <path d="M168 512 C214 430 252 370 300 322" fill="none" stroke="#7aa6d8" stroke-width="10" stroke-linecap="round"/>
+    <path d="M228 512 C258 432 282 374 318 324" fill="none" stroke="#7aa6d8" stroke-width="10" stroke-linecap="round"/>
+    <!-- Snöflingor -->
+    <g fill="#fff">
+      <circle cx="120" cy="140" r="7"/><circle cx="196" cy="96" r="5"/><circle cx="372" cy="120" r="6"/>
+      <circle cx="420" cy="190" r="4.5"/><circle cx="96" cy="230" r="4.5"/><circle cx="250" cy="130" r="4"/>
+    </g>
+    <!-- Stor snöflinga -->
+    <g transform="translate(330 110)" stroke="#fff" stroke-width="7" stroke-linecap="round" fill="none">
+      <path d="M0 -30V30M-26 -15L26 15M-26 15L26 -15"/>
+      <path d="M-8 -22L0 -14L8 -22M-8 22L0 14L8 22" stroke-width="5"/>
+    </g>
+    <!-- Glans på skärmen -->
+    <path d="M70 200 A190 190 0 0 1 200 66" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".22"/>
+  </g>
+
+  <!-- Liten "live"-lampa -->
+  <circle cx="420" cy="104" r="22" fill="#0b1220"/>
+  <circle cx="420" cy="104" r="14" fill="#ff4a3d"/>
 </svg>

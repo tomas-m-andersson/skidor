@@ -23,7 +23,12 @@
     sasongId: null,
     sasong: null,
     handelser: [],
-    vy: ['tabla', 'kalender', 'mina'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'tabla',
+    vy: ['tabla', 'kalender', 'resultat', 'mina'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'tabla',
+    res: null,          // resultatfilen för vald säsong
+    resVy: lagra.hamta('resVy', 'senaste'),
+    cupSport: lagra.hamta('cupSport', 'langd'),
+    cupKlass: lagra.hamta('cupKlass', 'D'),
+    cupNamn: lagra.hamta('cupNamn', 'Totalt'),
     sporter: new Set(lagra.hamta('sporter', [])),
     serier: new Set(lagra.hamta('serier', [])),
     paminn: new Set(lagra.hamta('paminn', [])),
@@ -133,6 +138,11 @@
       .sort((a, b) => (a.datum + (a.start || '99')).localeCompare(b.datum + (b.start || '99')));
     st.kalManad = null;
     st.kalDag = null;
+    await laddaResultat();
+  }
+  async function laddaResultat() {
+    try { st.res = await hamtaJson(`data/resultat-${st.sasongId}.json`); }
+    catch { st.res = null; }
   }
 
   function filtrerade() {
@@ -182,6 +192,7 @@
         <div class="titel">${esc(rubrik(e))}</div>
         <div class="ort">${flagga(e)} ${esc(e.ort)}${e.klass === 'DH' ? ' · Damer & herrar' : e.klass === 'Mix' ? ' · Mixed' : ''}</div>
         <div class="kanaler">${kanalHtml(e)}</div>
+        ${resultatLankar(e)}
       </div>
       <button class="klocka" data-paminn="${esc(e.id)}" aria-pressed="${p}" aria-label="${p ? 'Ta bort påminnelse' : 'Påminn mig'}">${klockIkon}</button>
     </article>`;
@@ -339,6 +350,180 @@
     $('#innehall').innerHTML = `<div class="tomt"><b>${esc(rubrik)}</b>${esc(text)}</div>`;
   }
 
+
+  // ======================================================================
+  // ---------- Resultat och cupställningar ----------
+  // Datan hämtas automatiskt (GitHub Actions) till data/resultat-<säsong>.json
+  // ======================================================================
+  const isoDatum = (nyckel) => nyckel; // datum lagras redan som ÅÅÅÅ-MM-DD
+  const fVeckodag = fmt({ weekday: 'short' });
+  const dagEtikett = (nyckel) => `${stor(fVeckodag.format(utcDag(nyckel)).replace('.', ''))} ${isoDatum(nyckel)}`;
+  const klassKort = (k) => ({ D: 'Damer', H: 'Herrar', Mix: 'Mixed' }[k] || '');
+  const loppRubrik = (l) => `${l.gren}${l.klass === 'D' || l.klass === 'H' ? ` (${l.klass})` : ''}`;
+  const landKod = (land) => land ? `<span class="landkod">${esc(land)}</span>` : '';
+
+  // Resultat som hör till en sändning i tablån (samma dag, sport och klass)
+  function resultatFor(e) {
+    if (!st.res || !['vc', 'vm', 'tds'].includes(e.serie)) return [];
+    return st.res.lopp.filter((l) => l.datum === e.datum && l.sport === e.sport &&
+      (e.klass === 'DH' || !e.klass || l.klass === e.klass || (e.klass === 'Mix' && l.klass === 'Mix')));
+  }
+  function resultatLankar(e) {
+    const lista = resultatFor(e);
+    if (!lista.length) return '';
+    return `<div class="reslankar">${lista.map((l) => `<button class="reslank" data-lopp="${esc(l.id)}">Resultat${lista.length > 1 ? ' ' + esc(l.gren.split(',')[0]) + (l.klass !== e.klass ? ` (${l.klass})` : '') : ''}</button>`).join('')}</div>`;
+  }
+  function detaljResultat(e) {
+    const lista = resultatFor(e);
+    if (!lista.length) return '';
+    return `<div class="detalj-res"><h4>Resultat</h4>${lista.map((l) => `
+      <button class="minires" data-lopp="${esc(l.id)}">
+        <span class="minires-titel">${esc(loppRubrik(l))}</span>
+        ${l.rader.slice(0, 3).map((r) => `<span class="minires-rad"><b>${r.plats ?? '–'}.</b> ${esc(r.namn)} ${landKod(r.land)}</span>`).join('')}
+        <span class="minires-mer">Visa hela resultatet</span>
+      </button>`).join('')}</div>`;
+  }
+
+  function resFiltrerade() {
+    return (st.res?.lopp || []).filter((l) =>
+      (!st.sporter.size || st.sporter.has(l.sport)) &&
+      (!st.serier.size || st.serier.has(l.serie)));
+  }
+
+  function forstaTavling() {
+    const nu = idagNyckel();
+    const e = st.handelser.find((x) => ['vc', 'tds', 'vm'].includes(x.serie) && x.datum >= nu);
+    return e ? e.datum : null;
+  }
+
+  function ritaResultat() {
+    const seg = `<div class="segment segment-res" role="tablist">
+      <button role="tab" data-resvy="senaste" aria-selected="${st.resVy === 'senaste'}">Senaste tävlingar</button>
+      <button role="tab" data-resvy="cup" aria-selected="${st.resVy === 'cup'}">Cupställning</button>
+    </div>`;
+    if (!st.res) {
+      const f = forstaTavling();
+      $('#innehall').innerHTML = seg + `<div class="tomt"><b>Inga resultat ännu</b>${f ? `Första världscuptävlingen är ${esc(dagEtikett(f))}. Resultaten dyker upp här automatiskt efter varje lopp.` : 'Resultaten dyker upp här automatiskt efter varje lopp.'}</div>`;
+    } else if (st.resVy === 'cup') {
+      $('#innehall').innerHTML = seg + cupHtml();
+    } else {
+      $('#innehall').innerHTML = seg + senasteHtml();
+    }
+    $('.segment-res').onclick = (ev) => {
+      const b = ev.target.closest('[data-resvy]');
+      if (!b) return;
+      st.resVy = b.dataset.resvy; lagra.spara('resVy', st.resVy);
+      ritaResultat();
+    };
+    const cupVal = $('#cupVal');
+    if (cupVal) cupVal.onclick = (ev) => {
+      const b = ev.target.closest('button');
+      if (!b) return;
+      if (b.dataset.cupsport) { st.cupSport = b.dataset.cupsport; lagra.spara('cupSport', st.cupSport); }
+      if (b.dataset.cupklass) { st.cupKlass = b.dataset.cupklass; lagra.spara('cupKlass', st.cupKlass); }
+      if (b.dataset.cupnamn) { st.cupNamn = b.dataset.cupnamn; lagra.spara('cupNamn', st.cupNamn); }
+      ritaResultat();
+    };
+  }
+
+  function senasteHtml() {
+    const lista = resFiltrerade();
+    const upd = st.res.uppdaterad ? new Date(st.res.uppdaterad) : null;
+    const updText = upd ? `<p class="hjalp res-upd">Uppdaterad ${dagNyckel(upd)} ${new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(upd)}</p>` : '';
+    if (!lista.length) {
+      const f = forstaTavling();
+      return `<div class="tomt"><b>Inga resultat ännu</b>${st.res.lopp.length ? 'Inga lopp matchar filtret.' : (f ? `Första världscuptävlingen är ${esc(dagEtikett(f))}.` : '')}</div>${updText}`;
+    }
+    let html = updText;
+    const dagar = new Map();
+    for (const l of lista) { if (!dagar.has(l.datum)) dagar.set(l.datum, []); dagar.get(l.datum).push(l); }
+    for (const [dag, lopp] of dagar) {
+      html += `<section class="dag"><div class="dag-rubrik"><h3>${esc(dagEtikett(dag))}</h3>${dag === idagNyckel() ? '<span class="idag">Idag</span>' : ''}</div><div class="lista">`;
+      for (const l of lopp) html += resKortHtml(l);
+      html += '</div></section>';
+    }
+    return html;
+  }
+
+  function resKortHtml(l) {
+    const s = serie(l);
+    const topp = l.rader.slice(0, 3);
+    const svensk = l.rader.find((r) => r.land === 'SWE');
+    const visaSvensk = svensk && !topp.includes(svensk);
+    const rad = (r, klass = '') => `<li class="${klass}${r.land === 'SWE' ? ' swe' : ''}"><span class="pl">${r.plats ?? '–'}</span><span class="nm">${esc(r.namn)}</span>${landKod(r.land)}<span class="tm">${esc(r.plats === 1 ? r.tid : (r.efter || r.tid))}</span></li>`;
+    return `<article class="kort reskort" style="--c:${s.farg}" data-lopp="${esc(l.id)}" tabindex="0">
+      <div class="info">
+        <div class="overrad">${esc(sportNamn(l))} · ${esc(s.namn)}${l.status !== 'klar' ? '<span class="prelim">Preliminärt</span>' : ''}</div>
+        <div class="titel">${esc(loppRubrik(l))}</div>
+        <div class="ort">${esc(l.ort)} · ${esc(l.tid)}</div>
+        <ol class="podium">${topp.map((r) => rad(r)).join('')}${visaSvensk ? rad(svensk, 'bastasve') : ''}</ol>
+      </div>
+    </article>`;
+  }
+
+  function visaLopp(id) {
+    const l = st.res?.lopp.find((x) => x.id === id);
+    if (!l) return;
+    const s = serie(l);
+    const skytte = l.sport === 'skidskytte';
+    const rader = l.rader.map((r) => `
+      <tr class="${r.land === 'SWE' ? 'swe' : ''}">
+        <td class="pl">${r.plats ?? '–'}</td>
+        <td class="nm">${esc(r.namn)}${r.medlemmar?.length ? `<small>${r.medlemmar.map(esc).join(', ')}</small>` : ''}</td>
+        <td>${landKod(r.land)}</td>
+        ${skytte ? `<td class="sk">${esc(r.skytte || '')}</td>` : ''}
+        <td class="tm">${esc(r.plats === 1 || !r.efter ? r.tid : r.efter)}</td>
+      </tr>`).join('');
+    const antal = l.rader.length;
+    $('#detaljInre').innerHTML = `
+      <div class="ark-huvud">
+        <div class="overrad detalj-overrad" style="--c:${s.farg}">${esc(sportNamn(l))} · ${esc(s.namn)}</div>
+        <button class="ikonknapp" id="stangDetalj" aria-label="Stäng">✕</button>
+      </div>
+      <div class="detalj-titel">${esc(loppRubrik(l))}</div>
+      <p class="hjalp">${esc(l.ort)} · ${esc(dagEtikett(l.datum))} ${esc(l.tid)}${l.klass ? ' · ' + esc(klassKort(l.klass)) : ''}${l.status !== 'klar' ? ' · Preliminärt resultat' : ''}</p>
+      <table class="restabell">
+        <thead><tr><th>Pl</th><th>${l.lag ? 'Lag' : 'Namn'}</th><th>Land</th>${skytte ? '<th>Skytte</th>' : ''}<th>Tid</th></tr></thead>
+        <tbody>${rader}</tbody>
+      </table>
+      <p class="hjalp">Visar topp 30 och alla svenskar${antal ? '' : ''}. <a href="${esc(l.kalla)}" target="_blank" rel="noopener">Fullständigt resultat hos ${l.sport === 'skidskytte' ? 'IBU' : 'FIS'}</a></p>`;
+    const dlg = $('#detalj');
+    $('#stangDetalj').onclick = () => dlg.close();
+    if (!dlg.open) dlg.showModal();
+    $('#detaljInre').scrollTop = 0;
+  }
+
+  function cupHtml() {
+    const cuper = st.res.cuper || [];
+    const sporter = ['langd', 'skidskytte'].filter((sp) => cuper.some((c) => c.sport === sp));
+    if (!sporter.length) {
+      return '<div class="tomt"><b>Ingen cupställning ännu</b>Den kommer efter första världscuptävlingen.</div>';
+    }
+    if (!sporter.includes(st.cupSport)) st.cupSport = sporter[0];
+    const avSport = cuper.filter((c) => c.sport === st.cupSport);
+    const namnen = [...new Set(avSport.map((c) => c.namn))];
+    if (!namnen.includes(st.cupNamn)) st.cupNamn = 'Totalt';
+    const cup = avSport.find((c) => c.namn === st.cupNamn && c.klass === st.cupKlass) || avSport.find((c) => c.klass === st.cupKlass);
+    const knapp = (attr, varde, text, vald) => `<button data-${attr}="${varde}" aria-pressed="${vald}">${esc(text)}</button>`;
+    let html = `<div id="cupVal" class="cupval">
+      <div class="valrad">${sporter.map((sp) => knapp('cupsport', sp, st.konfig.sporter[sp]?.namn || sp, sp === st.cupSport)).join('')}</div>
+      <div class="valrad">${knapp('cupklass', 'D', 'Damer', st.cupKlass === 'D')}${knapp('cupklass', 'H', 'Herrar', st.cupKlass === 'H')}</div>
+      <div class="valrad valrad-scroll">${namnen.map((n) => knapp('cupnamn', n, n, n === st.cupNamn)).join('')}</div>
+    </div>`;
+    if (!cup) return html + '<div class="tomt">Ingen ställning för det här valet ännu.</div>';
+    html += `<h3 class="cuprubrik">Världscupen ${esc(cup.namn.toLowerCase())}, ${esc(klassKort(cup.klass).toLowerCase())}</h3>
+      ${cup.efter ? `<p class="hjalp">${esc(cup.efter)}</p>` : ''}
+      <table class="restabell cuptabell">
+        <thead><tr><th>Pl</th><th>Namn</th><th>Land</th><th>Poäng</th></tr></thead>
+        <tbody>${cup.rader.map((r, i) => {
+          const glapp = i > 0 && r.plats - cup.rader[i - 1].plats > 1 ? '<tr class="glapp"><td colspan="4">…</td></tr>' : '';
+          return `${glapp}<tr class="${r.land === 'SWE' ? 'swe' : ''}"><td class="pl">${r.plats ?? '–'}</td><td class="nm">${esc(r.namn)}</td><td>${landKod(r.land)}</td><td class="tm">${r.poang}</td></tr>`;
+        }).join('')}</tbody>
+      </table>
+      <p class="hjalp">Visar topp 30 och alla svenskar. Svenska åkare är markerade.</p>`;
+    return html;
+  }
+
   // ---------- Rita ----------
   function rita() {
     document.querySelectorAll('.flikar button').forEach((b) => b.setAttribute('aria-selected', b.dataset.vy === st.vy));
@@ -346,6 +531,7 @@
     const r = $('#minaAntal');
     r.hidden = !n; r.textContent = n;
     if (st.vy === 'kalender') ritaKalender();
+    else if (st.vy === 'resultat') ritaResultat();
     else if (st.vy === 'mina') ritaMina();
     else ritaTabla();
   }
@@ -364,10 +550,13 @@
   $('#innehall').addEventListener('click', (ev) => {
     const k = ev.target.closest('[data-paminn]');
     if (k) { ev.stopPropagation(); vaxlaPaminn(k.dataset.paminn); return; }
+    const resKnapp = ev.target.closest('[data-lopp]');
+    if (resKnapp) { ev.stopPropagation(); visaLopp(resKnapp.dataset.lopp); return; }
     const kort = ev.target.closest('.kort');
     if (kort) visaDetalj(kort.dataset.id);
   });
   $('#innehall').addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && ev.target.dataset.lopp) return visaLopp(ev.target.dataset.lopp);
     if (ev.key === 'Enter' && ev.target.classList.contains('kort')) visaDetalj(ev.target.dataset.id);
   });
 
@@ -402,6 +591,7 @@
         ${e.klass ? `<dt>Klass</dt><dd>${esc(klassNamn(e))}</dd>` : ''}
       </dl>
       ${e.notering ? `<div class="notis">${esc(e.notering)}</div>` : ''}
+      ${detaljResultat(e)}
       <div class="detalj-knappar">
         <button class="knapp ${p ? '' : 'primar'}" id="dPaminn">${p ? '🔕 Ta bort påminnelse' : '🔔 Påminn mig'}</button>
         <button class="knapp" id="dIcs">📅 Lägg i mobilens kalender</button>
@@ -411,6 +601,7 @@
     $('#stangDetalj').onclick = () => dlg.close();
     $('#dPaminn').onclick = () => { vaxlaPaminn(e.id); visaDetalj(e.id); };
     $('#dIcs').onclick = () => laddaNerIcs([e], `${e.id}.ics`);
+    $('#detaljInre').querySelectorAll('[data-lopp]').forEach((b) => { b.onclick = () => visaLopp(b.dataset.lopp); });
     if (!dlg.open) dlg.showModal();
   }
   // Stäng dialog vid klick utanför
@@ -615,7 +806,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=7" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=8" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -667,7 +858,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=7" alt="">
+      <img src="icon.svg?v=8" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>
@@ -772,6 +963,7 @@
       try { st.pushUrl = ((await hamtaJson('config.json')).pushServer || '').replace(/\/+$/, ''); } catch { /* ingen push */ }
       pushSynka();
       setInterval(() => { if (!document.querySelector('dialog[open]')) { const y = scrollY; rita(); scrollTo({ top: y }); } }, 60e3);
+      setInterval(async () => { await laddaResultat(); if (st.vy === 'resultat' && !document.querySelector('dialog[open]')) { const y = scrollY; rita(); scrollTo({ top: y }); } }, 5 * 60e3);
     } catch (fel) {
       console.error(fel);
       tomt('Kunde inte ladda tablån', 'Kontrollera internetanslutningen och ladda om sidan.');

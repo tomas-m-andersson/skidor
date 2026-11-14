@@ -11,6 +11,9 @@ Mobilanpassad samlingssida för längdskidor, skidskytte, Tour de Ski, VM, SM, S
 | `app.js` | All logik: tablå, kalender, filter, påminnelser, kalenderfiler |
 | `data/sasonger.json` | Lista över säsonger + namn och färger för serierna |
 | `data/sasong-2026-27.json` | **All tävlings- och TV-data för 2026/27** |
+| `data/resultat-2026-27.json` | Resultat och cupställningar – **skrivs automatiskt, ändra inte för hand** |
+| `scripts/hamta-resultat.mjs` | Hämtar resultaten (körs av GitHub Actions) |
+| `.github/workflows/resultat.yml` | Schemat som kör hämtningen var 20:e minut |
 | `config.json` | Adressen till push-tjänsten |
 | `push/` | Push-tjänsten (Cloudflare Worker) och guide |
 | `sw.js`, `manifest.webmanifest`, `icon*` | Gör att sidan kan installeras som app på mobilen |
@@ -56,6 +59,26 @@ Mobilanpassad samlingssida för längdskidor, skidskytte, Tour de Ski, VM, SM, S
    ```
    (glöm inte kommatecknet mellan raderna) och ändra `"standard"` till `"2027-28"`.
 3. Säsongsväljaren uppe till höger dyker då upp med båda säsongerna.
+
+## Resultat och cupställningar
+
+Fliken **Resultat** fylls på automatiskt. Var 20:e minut kör GitHub ett litet program (`scripts/hamta-resultat.mjs`) som hämtar:
+
+- **Skidskytte** (världscup + VM): från IBU:s öppna data – samma som biathlonworld.com använder.
+- **Längd** (världscup, Tour de Ski, VM): avläses från FIS resultatsidor (fis-ski.com).
+
+Programmet sparar topp 30 och alla svenskar per lopp i `data/resultat-<säsong>.json` och laddar upp filen själv, bara när något nytt har hänt.
+
+> ⚠️ Ändra inte resultatfilen för hand – den skrivs över vid nästa hämtning.
+
+**Om resultaten slutar uppdateras:**
+1. Gå till repot på github.com och klicka på fliken **Actions** högst upp.
+2. Klicka på **Hämta resultat** i listan till vänster.
+3. En röd markering betyder att hämtningen misslyckades – oftast för att FIS har ändrat sin webbsida. Säg till Claude så justeras programmet.
+4. Står det att arbetsflödet är **avstängt** (GitHub stänger av schemat efter 60 dagar utan aktivitet, t.ex. under sommaren): klicka på **Enable workflow**.
+5. Vill du hämta direkt: klicka på **Run workflow** → **Run workflow**.
+
+Ski Classics, Vasaloppet och SM finns inte med – arrangörerna har ingen gemensam källa att hämta från.
 
 ## Påminnelser
 

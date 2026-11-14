@@ -266,3 +266,69 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
 .install-banner div { flex: 1; font-size: 14px; color: var(--text2); line-height: 1.3; }
 .install-banner div b { display: block; color: var(--text); font-size: 15px; }
 .install-banner .stang { border: 0; background: none; color: var(--text3); font-size: 18px; width: 32px; height: 32px; }
+
+/* ===== Resultat ===== */
+.landkod {
+  display: inline-block; font: 600 12px/1 var(--font-k); letter-spacing: .04em; color: var(--text3);
+  border: 1px solid var(--linje); border-radius: 4px; padding: 2px 4px; vertical-align: 1px;
+}
+.segment-res { display: grid; grid-template-columns: 1fr 1fr; margin-top: 12px; }
+.segment-res button { border: 0; background: none; padding: 9px 6px; border-radius: 9px; font-weight: 600; color: var(--text2); }
+.segment-res button[aria-selected="true"] { background: var(--yta); color: var(--text); box-shadow: var(--skugga); }
+.res-upd { text-align: right; margin: 8px 2px 0; font-size: 13px; color: var(--text3); }
+.reskort { grid-template-columns: 1fr; padding: 12px 14px 10px 16px; }
+.prelim { margin-left: 8px; color: var(--live); font: 700 12px var(--font-k); letter-spacing: .05em; text-transform: uppercase; }
+.podium { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 2px; }
+.podium li { display: grid; grid-template-columns: 26px 1fr auto auto; gap: 8px; align-items: center; font-size: 15px; padding: 3px 0; }
+.podium .pl { font: 700 16px var(--font-k); color: var(--text2); text-align: right; }
+.podium .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium .tm { font: 600 14px var(--font-k); font-variant-numeric: tabular-nums; color: var(--text2); min-width: 54px; text-align: right; }
+.podium .bastasve { border-top: 1px dashed var(--linje); margin-top: 3px; padding-top: 6px; }
+.swe .nm { font-weight: 700; }
+.podium li.swe, .restabell tr.swe td { background: color-mix(in srgb, #f2c200 16%, transparent); }
+.podium li.swe { border-radius: 6px; padding-left: 4px; padding-right: 4px; margin: 0 -4px; }
+
+.reslankar { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.reslank {
+  border: 1px solid var(--accent); color: var(--accent); background: transparent; border-radius: 8px;
+  padding: 4px 10px; font: 600 13.5px var(--font-k); letter-spacing: .03em; text-transform: uppercase;
+}
+.detalj-res h4 { margin: 0 0 8px; font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing: .08em; color: var(--text3); }
+.detalj-res { margin-bottom: 14px; display: grid; gap: 8px; }
+.minires {
+  display: grid; gap: 3px; text-align: left; width: 100%; background: var(--yta2); border: 0; border-radius: 12px; padding: 10px 12px;
+}
+.minires-titel { font-weight: 600; margin-bottom: 2px; }
+.minires-rad { font-size: 14.5px; color: var(--text2); }
+.minires-mer { font-size: 13.5px; color: var(--accent); font-weight: 600; margin-top: 3px; }
+
+.restabell { width: 100%; border-collapse: collapse; margin: 10px 0 6px; font-size: 15px; }
+.restabell th { text-align: left; font: 600 12px var(--font-k); text-transform: uppercase; letter-spacing: .06em; color: var(--text3); padding: 6px 6px; border-bottom: 1px solid var(--linje); }
+.restabell td { padding: 7px 6px; border-bottom: 1px solid var(--linje); vertical-align: top; }
+.restabell .pl { width: 32px; text-align: right; font: 700 15px var(--font-k); color: var(--text2); }
+.restabell .tm, .restabell .sk { text-align: right; font: 600 14px var(--font-k); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.restabell th:last-child { text-align: right; }
+.restabell .nm small { display: block; color: var(--text3); font-size: 13px; font-weight: 400; margin-top: 2px; }
+.restabell .glapp td { text-align: center; color: var(--text3); padding: 2px; }
+
+.cupval { display: grid; gap: 8px; margin-top: 12px; }
+.valrad { display: flex; gap: 6px; flex-wrap: wrap; }
+.valrad-scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.valrad-scroll::-webkit-scrollbar { display: none; }
+.valrad button {
+  flex: none; border: 1px solid var(--linje); background: var(--yta); color: var(--text2);
+  border-radius: 999px; padding: 6px 14px; font-weight: 600; font-size: 14px;
+}
+.valrad button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.cuprubrik { margin: 18px 0 2px; font: 700 20px var(--font-k); text-transform: uppercase; letter-spacing: .03em; }
+.cuptabell .tm { font-weight: 700; }
+
+/* Fyra flikar får plats på smal mobil */
+@media (max-width: 420px) {
+  .flikar { gap: 0; }
+  .flikar button { font-size: 14px; letter-spacing: .01em; padding-left: 2px; padding-right: 2px; }
+}
+.valrad-scroll { flex-wrap: wrap; }
+@media (min-width: 760px) {
+  .cupval { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+}

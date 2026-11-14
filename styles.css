@@ -332,3 +332,11 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
 @media (min-width: 760px) {
   .cupval { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 }
+
+/* Ikoner i knappar */
+.kikon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 420px) {
+  .flikar { justify-content: space-between; }
+  .flikar button { flex: 0 1 auto; font-size: 13.5px; letter-spacing: 0; padding-left: 4px; padding-right: 4px; }
+  .raknare { min-width: 18px; padding: 0 5px; font-size: 12px; line-height: 18px; }
+}

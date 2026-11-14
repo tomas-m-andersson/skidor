@@ -112,6 +112,11 @@
     return e.kanal.map((k) => `<span class="kanal ${kanalKlass(k)}">${esc(k)}</span>`).join('');
   }
   const klockIkon = '<svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>';
+  const knappIkon = {
+    klocka: '<svg class="kikon" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>',
+    ingenKlocka: '<svg class="kikon" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/><path d="M4 4l16 16"/></svg>',
+    kalender: '<svg class="kikon" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>'
+  };
 
   let toastTimer;
   function toast(text) {
@@ -324,9 +329,9 @@
     const kommande = mina.filter((e) => !arPasserad(e));
     let html = `<div class="mina-topp">
       <h3>Dina påminnelser</h3>
-      <p>Tryck på klockan 🔔 vid en sändning för att spara den här. Lägg sedan in dem i mobilens kalender – då får du ett larm ${st.forvarning >= 60 ? st.forvarning / 60 + ' tim' : st.forvarning + ' min'} före start, även när sidan är stängd.</p>
+      <p>Tryck på klockan vid en sändning för att spara den här. Lägg sedan in dem i mobilens kalender – då får du ett larm ${st.forvarning >= 60 ? st.forvarning / 60 + ' tim' : st.forvarning + ' min'} före start, även när sidan är stängd.</p>
       <div class="knapprad">
-        <button class="knapp primar" id="exportMina" ${kommande.length ? '' : 'disabled'}>📅 Lägg ${kommande.length || ''} i kalendern</button>
+        <button class="knapp primar" id="exportMina" ${kommande.length ? '' : 'disabled'}>${knappIkon.kalender} Lägg ${kommande.length || ''} i kalendern</button>
         <button class="knapp" id="exportFilter">Exportera allt i filtret</button>
       </div>
     </div>`;
@@ -562,7 +567,7 @@
 
   function vaxlaPaminn(id) {
     if (st.paminn.has(id)) { st.paminn.delete(id); toast('Påminnelse borttagen'); }
-    else { st.paminn.add(id); toast('Sparad under Påminnelser 🔔'); }
+    else { st.paminn.add(id); toast('Sparad under Påminnelser'); }
     lagra.spara('paminn', [...st.paminn]);
     pushSynka();
     const y = scrollY;
@@ -593,8 +598,8 @@
       ${e.notering ? `<div class="notis">${esc(e.notering)}</div>` : ''}
       ${detaljResultat(e)}
       <div class="detalj-knappar">
-        <button class="knapp ${p ? '' : 'primar'}" id="dPaminn">${p ? '🔕 Ta bort påminnelse' : '🔔 Påminn mig'}</button>
-        <button class="knapp" id="dIcs">📅 Lägg i mobilens kalender</button>
+        <button class="knapp ${p ? '' : 'primar'}" id="dPaminn">${p ? knappIkon.ingenKlocka + ' Ta bort påminnelse' : knappIkon.klocka + ' Påminn mig'}</button>
+        <button class="knapp" id="dIcs">${knappIkon.kalender} Lägg i mobilens kalender</button>
         <a class="knapp" target="_blank" rel="noopener" href="${googleLank(e)}">Lägg i Google Kalender</a>
       </div>`;
     const dlg = $('#detalj');
@@ -648,7 +653,7 @@
         rader.push(`DTSTART;VALUE=DATE:${e.datum.replace(/-/g, '')}`, `DTEND;VALUE=DATE:${laggTillDagar(e.datum, 1).replace(/-/g, '')}`);
       }
       rader.push(
-        `SUMMARY:${icsText((e.kanal?.length ? '📺 ' : '') + kortNamn(e))}`,
+        `SUMMARY:${icsText(kortNamn(e))}`,
         `LOCATION:${icsText((e.kanal?.length ? e.kanal.join(', ') + ' – ' : '') + e.ort)}`,
         `DESCRIPTION:${icsText(beskrivning(e))}`,
         'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(kortNamn(e))}`,
@@ -784,7 +789,7 @@
   });
   addEventListener('appinstalled', () => {
     installPrompt = null;
-    toast('Appen är installerad – hitta den på hemskärmen ⛷️');
+    toast('Appen är installerad – hitta den på hemskärmen');
     ritaInstall();
   });
 
@@ -806,7 +811,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=8" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=9" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -858,7 +863,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=8" alt="">
+      <img src="icon.svg?v=9" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>
@@ -903,7 +908,7 @@
         const sub = await hamtaSub(true);
         await pushAnrop('/synka', { sub: sub.toJSON(), paminnelser: pushPaminnelser() });
         st.push = true;
-        toast('Push-notiser är på 🔔 – testa gärna med knappen');
+        toast('Push-notiser är på – testa gärna med knappen');
       } catch (fel) {
         st.push = false;
         toast(pushFelText(fel));

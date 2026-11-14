@@ -53,7 +53,7 @@ export default {
       }
       if (url.pathname === '/test') {
         const sub = kollaSub(kropp.sub);
-        const r = await skickaPush(env, sub, { titel: 'SKIDOR 🎿', text: 'Testnotis – push-notiserna fungerar!', tag: 'test' });
+        const r = await skickaPush(env, sub, { titel: 'SKIDOR', text: 'Testnotis – push-notiserna fungerar!', tag: 'test' });
         return svar({ ok: r.ok, status: r.status, info: r.ok ? '' : await r.text() }, r.ok ? 200 : 502);
       }
       if (url.pathname === '/avsluta') {

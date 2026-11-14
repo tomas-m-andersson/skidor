@@ -97,7 +97,7 @@ Skicka adressen från steg 2 till Claude, så lägger Claude in den i filen `con
 1. Vänta ca 10 minuter efter att `config.json` uppdaterats och ladda om SKIDOR.
 2. Tryck på inställningsknappen uppe till höger → **Push-notiser** → slå på.
 3. Webbläsaren frågar om sidan får visa aviseringar → **Tillåt**.
-4. Tryck på **🔔 Skicka testnotis**. En notis ska dyka upp inom några sekunder.
+4. Tryck på **Skicka testnotis**. En notis ska dyka upp inom några sekunder.
 
 ### Kommer ingen testnotis i Brave?
 

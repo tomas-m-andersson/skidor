@@ -13,7 +13,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SASONG = { id: '2026-27', ibu: '2627', fis: '2027' };
+// Säsongen följer "standard" i data/sasonger.json (kan överstyras med RESULTAT_SASONG=2025-26)
+const sasongId = process.env.RESULTAT_SASONG || JSON.parse(await fs.readFile(path.join(ROT, 'data', 'sasonger.json'), 'utf8')).standard;
+const SASONG = { id: sasongId, ibu: sasongId.slice(2, 4) + sasongId.slice(5, 7), fis: '20' + sasongId.slice(5, 7) };
 const FIL = path.join(ROT, 'data', `resultat-${SASONG.id}.json`);
 const TOPP = 30;          // antal placeringar som sparas per lopp/cup (+ alla svenskar)
 const TZ = 'Europe/Stockholm';
@@ -38,6 +40,18 @@ const svTid = (d) => new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, hour: '2-d
 const avkoda = (s) => String(s ?? '')
   .replace(/&amp;/g, '&').replace(/&#39;|&#039;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&nbsp;/g, ' ')
   .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n)).replace(/\s+/g, ' ').trim();
+// FIS och IBU skriver namn utan å/ä/ö/ø/æ ("HAEGGSTROEM", "KLAEBO").
+// För svenska, finska och norska åkare byts bokstäverna tillbaka.
+const UNDANTAG = new Set(['Joel', 'Noel', 'Michael', 'Raphael', 'Ismael', 'Israel', 'Zoe', 'Chloe', 'Phoebe', 'Mikael']);
+export function fixaTecken(namn, land) {
+  const byt = {
+    SWE: [[/ae/g, 'ä'], [/Ae/g, 'Ä'], [/oe/g, 'ö'], [/Oe/g, 'Ö'], [/aa/g, 'å'], [/Aa/g, 'Å']],
+    FIN: [[/ae/g, 'ä'], [/Ae/g, 'Ä']], // inte oe – finns i riktiga finska namn (Joensuu)
+    NOR: [[/ae/g, 'æ'], [/Ae/g, 'Æ'], [/oe/g, 'ø'], [/Oe/g, 'Ø'], [/aa/g, 'å'], [/Aa/g, 'Å']]
+  }[land];
+  if (!byt) return namn;
+  return namn.split(' ').map((ord) => UNDANTAG.has(ord) ? ord : byt.reduce((o, [re, ny]) => o.replace(re, ny), ord)).join(' ');
+}
 // Behåll topp N + alla svenskar
 const urval = (rader) => rader.filter((r, i) => i < TOPP || r.land === 'SWE');
 
@@ -60,6 +74,9 @@ export function svenskGren(text) {
     [/relay/g, 'stafett'],
     [/sprint/g, 'sprint'],
     [/qualification/g, 'kval'],
+    [/sprint final/g, 'sprint'],
+    [/skiathlon\s+classic\/free|skiathlon\s+klassiskt\/fristil/g, 'skiathlon'],
+    [/heat mass start/g, 'heatmasstart'],
     [/final climb/g, 'final climb'],
     [/classic(al)?/g, 'klassiskt'],
     [/free(style)?/g, 'fristil'],
@@ -69,16 +86,16 @@ export function svenskGren(text) {
   for (const [re, ny] of byt) t = t.replace(re, ny);
   t = t.replace(/\s+/g, ' ').trim();
   // "10 km intervallstart klassiskt" -> "10 km intervallstart, klassiskt"
-  t = t.replace(/ (klassiskt|fristil)$/, ', $1');
+  t = t.replace(/ (klassiskt|fristil)$/, ', $1').replace(/^sprint final/, 'sprint');
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
-const klassFranText = (t) => /mixed|\(m\s*\+\s*w\)/i.test(t) ? 'Mix' : /women|ladies/i.test(t) ? 'D' : /\bmen/i.test(t) ? 'H' : '';
+export const klassFranText = (t) => /mixed|\(m\s*\+\s*w\)/i.test(t) ? 'Mix' : /women|ladies/i.test(t) ? 'D' : /\bmen/i.test(t) ? 'H' : '';
 
 // ======================================================================
 // SKIDSKYTTE (IBU)
 // ======================================================================
 const IBU = 'https://bw.biathlonresults.com/modules/sportapi/api/';
-const IBU_GREN = { SP: 'Sprint', PU: 'Jaktstart', IN: 'Distans', MS: 'Masstart', RL: 'Stafett', SR: 'Singelmixstafett' };
+const IBU_GREN = { SP: 'Sprint', PU: 'Jaktstart', IN: 'Distans', SI: 'Kortdistans', MS: 'Masstart', RL: 'Stafett', SR: 'Singelmixstafett' };
 
 export function ibuLopp(event, comp, res) {
   const start = new Date(comp.StartTime);
@@ -86,17 +103,24 @@ export function ibuLopp(event, comp, res) {
   let gren = IBU_GREN[comp.DisciplineId] || comp.ShortDescription;
   if (comp.catId === 'MX' && comp.DisciplineId === 'RL') gren = 'Mixstafett';
   const km = comp.km ? String(comp.km).replace('.', ',').replace('x', '×') + ' km' : '';
-  const rader = (res.Results || [])
-    .filter((r) => !r.Leg || r.IsTeam) // stafett: bara lagrader
-    .filter((r) => r.Rank || r.IRM)
-    .map((r) => ({
+  const rader = [];
+  for (const r of res.Results || []) {
+    if (!r.IsTeam && r.Leg) { // stafettsträcka: lägg namnet under laget
+      const lag = rader[rader.length - 1];
+      if (lag) (lag.medlemmar ||= []).push(namnIbu(r));
+      continue;
+    }
+    if (!r.Rank && !r.IRM) continue;
+    rader.push({
       plats: r.Rank ? Number(r.Rank) : null,
       namn: r.IsTeam ? lagNamn(r.Nat) : namnIbu(r),
       land: r.Nat,
       tid: r.IRM || r.TotalTime || r.Result || '',
       efter: r.Rank === '1' ? '' : (r.Behind && r.Behind !== '0.0' ? r.Behind : ''),
       skytte: r.ShootingTotal ?? ''
-    }))
+    });
+  }
+  rader
     .sort((a, b) => (a.plats ?? 9999) - (b.plats ?? 9999));
   return {
     id: comp.RaceId,
@@ -117,7 +141,7 @@ export function ibuLopp(event, comp, res) {
 function namnIbu(r) {
   const efter = r.FamilyName ? r.FamilyName.charAt(0) + r.FamilyName.slice(1).toLowerCase() : '';
   const efterNamn = efter.replace(/(^|[\s-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
-  return [r.GivenName, efterNamn].filter(Boolean).join(' ') || r.Name;
+  return fixaTecken([r.GivenName, efterNamn].filter(Boolean).join(' ') || r.Name, r.Nat);
 }
 const ORTER = { Oestersund: 'Östersund', 'Oslo Holmenkollen': 'Holmenkollen', 'Nove Mesto na Morave': 'Nové Město', Otepaa: 'Otepää', 'Antholz-Anterselva': 'Antholz', 'Le Grand Bornand': 'Le Grand-Bornand' };
 const ortIbu = (o) => ORTER[o] || o;
@@ -207,7 +231,7 @@ export function fisResultat(html) {
         // Lagmedlem (stafett/lagsprint): lägg till under senaste laget
         const namn = celler.find((c) => /\p{L}{2}/u.test(c) && !/^\d/.test(c));
         const lag = rader[rader.length - 1];
-        if (namn && lag) (lag.medlemmar ||= []).push(namnFis(namn, ''));
+        if (namn && lag) (lag.medlemmar ||= []).push(namnFis(namn, lag.land));
         continue;
       }
       if (!celler.length || !/^\d+$/.test(celler[0])) continue;
@@ -239,7 +263,7 @@ function namnFis(namn, land) {
   const for_ = ord.filter((o) => !efter.includes(o));
   if (!efter.length || !for_.length) return namn;
   const snygg = efter.join(' ').toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
-  return `${for_.join(' ')} ${snygg}`;
+  return fixaTecken(`${for_.join(' ')} ${snygg}`, land);
 }
 // Cupställning
 export function fisCup(html) {

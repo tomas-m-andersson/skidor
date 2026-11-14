@@ -195,10 +195,18 @@ function fisResultat(html) {
   const del = html.slice(html.indexOf('id="events-info-results"'));
   const rader = [];
   if (html.includes('id="events-info-results"')) {
-    for (const rad of del.split(/<a class="table-row"|<div class="table-row"/).slice(1)) {
+    for (const rad of del.split(/<a class="table-row(?=[\s"])/).slice(1)) {
+      const medlem = /^[^>]*table-row_theme_additional/.test(rad);
       const celler = rad.slice(rad.indexOf('>') + 1)
         .replace(/<!--[\s\S]*?-->/g, '')
         .split(/<[^>]+>/).map(avkoda).filter(Boolean);
+      if (medlem) {
+        // Lagmedlem (stafett/lagsprint): lägg till under senaste laget
+        const namn = celler.find((c) => /\p{L}{2}/u.test(c) && !/^\d/.test(c));
+        const lag = rader[rader.length - 1];
+        if (namn && lag) (lag.medlemmar ||= []).push(namnFis(namn, ''));
+        continue;
+      }
       if (!celler.length || !/^\d+$/.test(celler[0])) continue;
       const landIdx = celler.findIndex((c, i) => i > 1 && /^[A-Z]{3}$/.test(c));
       if (landIdx < 0) continue;
@@ -206,17 +214,22 @@ function fisResultat(html) {
       // Namn: första cellen med bokstäver efter plats/startnummer/kod
       const namn = celler.slice(1, landIdx).find((c) => /\p{L}{2}/u.test(c)) || land;
       const efterLand = celler.slice(landIdx + 1);
-      const tid = efterLand.find((c) => /^\d{1,2}:\d{2}(:\d{2})?(\.\d)?$|^\d+:\d{2}\.\d$|^\d+\.\d$/.test(c)) || '';
+      const tid = efterLand.find((c) => /^\d{1,2}:\d{2}(:\d{2})?(\.\d{1,2})?$|^\d{1,2}\.\d{1,2}$/.test(c)) || '';
       const efter = efterLand.find((c) => /^\+/.test(c)) || '';
-      rader.push({ plats: Number(celler[0]), namn: namnFis(namn, land), land, tid, efter });
+      const arLag = /table-row_theme_main/.test(rad.slice(0, 200)) || (namn === namn.toUpperCase() && !/\p{Ll}/u.test(namn));
+      rader.push({ plats: Number(celler[0]), namn: arLag ? lagNamnFis(namn, land) : namnFis(namn, land), land, tid, efter });
       if (rader.length > 300) break;
     }
   }
   return { rubrik, platsText, start: iso ? new Date(iso) : null, rader };
 }
+// "SWEDEN I" -> "Sverige I"
+function lagNamnFis(namn, land) {
+  const nr = (namn.match(/\s(I{1,3}|IV|V|\d)$/) || [])[1];
+  return land ? `${lagNamn(land)}${nr ? ' ' + nr : ''}` : namn;
+}
 function namnFis(namn, land) {
   if (namn === land) return lagNamn(land);
-  if (/^[A-Z]{3}(\s|$)/.test(namn) || /\bI{1,3}$/.test(namn)) return namn.replace(/^([A-Z]{3})\b/, (k) => lagNamn(k));
   // "SVAHN Linn" -> "Linn Svahn"
   const ord = namn.split(' ');
   const efter = ord.filter((o) => o === o.toUpperCase() && /\p{Lu}/u.test(o));
@@ -249,10 +262,10 @@ async function hamtaFis(tidigare) {
   const nu = Date.now();
   const helger = [];
   for (const [kategori, serieStd] of [['WC', 'vc'], ['WSC', 'vm']]) {
-    const url = `${FIS}/cross-country/calendar-results.html?eventselection=results&place=&sectorcode=CC&seasoncode=${SASONG.fis}&categorycode=${kategori}&disciplinecode=&gendercode=&racedate=&racecodex=&nationcode=&seasonmonth=X-${SASONG.fis}&saveselection=-1&seasonselection=`;
+    const url = `${FIS}/cross-country/calendar-results.html?eventselection=&place=&sectorcode=CC&seasoncode=${SASONG.fis}&categorycode=${kategori}&disciplinecode=&gendercode=&racedate=&racecodex=&nationcode=&seasonmonth=X-${SASONG.fis}&saveselection=-1&seasonselection=`;
     try {
       for (const h of fisKalender(await hamta(url))) {
-        if (h.ort === 'Tour de Ski') continue; // samlingsevent – etapperna finns som egna helger
+        if (/Tour de Ski/i.test(h.ort)) continue; // samlingsevent – etapperna finns som egna helger
         helger.push({ ...h, serie: kategori === 'WSC' ? 'vm' : /\bSWC\b/.test(h.koder) ? 'tds' : serieStd });
       }
     } catch (fel) { console.warn('FIS-kalender:', fel.message); }
@@ -268,6 +281,7 @@ async function hamtaFis(tidigare) {
       if (gammal && gammal.status === 'klar' && nu - start.getTime() > 36 * 3600e3) { lopp.push(gammal); continue; }
       try {
         const r = fisResultat(await hamta(`${FIS}/general/results.html?sectorcode=CC&raceid=${id}`));
+        if (/qualification/i.test(r.rubrik)) continue; // kval visas inte
         if (!r.rader.length) { if (gammal) lopp.push(gammal); continue; }
         const st = r.start || start;
         lopp.push({
@@ -303,3 +317,5 @@ async function hamtaFis(tidigare) {
 }
 
 // ======================================================================
+
+;return { fisKalender, fisEvent, fisResultat, fisCup, svenskGren, klassFranText, ibuLopp, ibuCup, hamtaIbu, hamtaFis, SASONG };

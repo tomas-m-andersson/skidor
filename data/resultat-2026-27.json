@@ -1,0 +1,11 @@
+{
+  "uppdaterad": "2026-11-14T16:43:54.154Z",
+  "sasong": "2026/27",
+  "lopp": [
+
+  ],
+  "cuper": [
+    {"id":"FIS-WC-W-tot","sport":"langd","namn":"Totalt","klass":"D","efter":"Efter 2 av 2 lopp","rader":[{"plats":1,"namn":"Rosie Fordham","land":"AUS","poang":300},{"plats":2,"namn":"Isabella Moon","land":"AUS","poang":220},{"plats":3,"namn":"Rosie Franzke","land":"AUS","poang":145},{"plats":4,"namn":"Satara Moon","land":"AUS","poang":140},{"plats":4,"namn":"Ava Mccann","land":"AUS","poang":140},{"plats":6,"namn":"Elle Sankey","land":"AUS","poang":131},{"plats":7,"namn":"Isabelle Bugg","land":"AUS","poang":112},{"plats":8,"namn":"Aurora Zhang","land":"AUS","poang":96},{"plats":9,"namn":"Khadijah Ismail","land":"MAS","poang":84},{"plats":10,"namn":"Alexandra Mcevoy","land":"AUS","poang":81},{"plats":11,"namn":"Mia Green","land":"AUS","poang":45}]},
+    {"id":"FIS-WC-M-tot","sport":"langd","namn":"Totalt","klass":"H","efter":"Efter 2 av 2 lopp","rader":[{"plats":1,"namn":"Lars Young Vik","land":"AUS","poang":160},{"plats":2,"namn":"Seve De Campo","land":"AUS","poang":145},{"plats":3,"namn":"Cole Flowers","land":"USA","poang":120},{"plats":4,"namn":"Jayden Spring","land":"AUS","poang":100},{"plats":4,"namn":"Bentley Walker-Broose","land":"AUS","poang":100},{"plats":6,"namn":"Clancy Merrick Harvey","land":"AUS","poang":80},{"plats":7,"namn":"Noah Bradford","land":"AUS","poang":77},{"plats":8,"namn":"Samuel Johnson","land":"AUS","poang":65},{"plats":9,"namn":"Vincent De Souza","land":"AUS","poang":62},{"plats":10,"namn":"Adam Barnett","land":"AUS","poang":56},{"plats":11,"namn":"Ben Wichgers","land":"AUS","poang":55},{"plats":12,"namn":"Ethan Zhang","land":"AUS","poang":44},{"plats":13,"namn":"Liam Cullen-Croke","land":"AUS","poang":22},{"plats":13,"namn":"Finn Walsh","land":"AUS","poang":22}]}
+  ]
+}

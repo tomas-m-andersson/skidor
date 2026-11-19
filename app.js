@@ -816,7 +816,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=10" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=11" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -868,7 +868,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=10" alt="">
+      <img src="icon.svg?v=11" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>

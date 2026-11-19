@@ -331,7 +331,9 @@
     const kommande = mina.filter((e) => !arPasserad(e));
     let html = `<div class="mina-topp">
       <h3>Dina påminnelser</h3>
-      <p>Tryck på klockan vid en sändning för att spara den här. Lägg sedan in dem i mobilens kalender – då får du ett larm ${st.forvarning >= 60 ? st.forvarning / 60 + ' tim' : st.forvarning + ' min'} före start, även när sidan är stängd.</p>
+      <p>${st.kal && kalToken()
+        ? 'Tryck på klockan vid en sändning så hamnar den här och i kalendern "Skidor" i din Kalender-app.'
+        : `Tryck på klockan vid en sändning för att spara den här. Lägg sedan in dem i mobilens kalender – då får du ett larm ${st.forvarning >= 60 ? st.forvarning / 60 + ' tim' : st.forvarning + ' min'} före start, även när sidan är stängd.`}</p>
       <div class="knapprad">
         <button class="knapp primar" id="exportMina" ${kommande.length ? '' : 'disabled'}>${knappIkon.kalender} Lägg ${kommande.length || ''} i kalendern</button>
         <button class="knapp" id="exportFilter">Exportera allt i filtret</button>
@@ -568,8 +570,9 @@
   });
 
   function vaxlaPaminn(id) {
-    if (st.paminn.has(id)) { st.paminn.delete(id); toast('Påminnelse borttagen'); }
-    else { st.paminn.add(id); toast('Sparad under Påminnelser'); }
+    const e = st.handelser.find((x) => x.id === id);
+    if (st.paminn.has(id)) { st.paminn.delete(id); toast('Påminnelse borttagen'); kalTaBort([id]); }
+    else { st.paminn.add(id); if (st.kal && kalToken() && e) kalLaggTill(e); else toast('Sparad under Påminnelser'); }
     lagra.spara('paminn', [...st.paminn]);
     pushSynka();
     const y = scrollY;
@@ -813,7 +816,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=9" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=10" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -865,12 +868,177 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=9" alt="">
+      <img src="icon.svg?v=10" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>
     </div>`;
   }
+
+
+  // ======================================================================
+  // ---------- Min kalender (Kalender-appen i repot "kalender") ----------
+  // SKIDOR lägger påminnelserna som händelser i kalender.json i det privata
+  // repot "kalender-data". Bara händelser som SKIDOR själv skapat (gid som
+  // börjar med "skidor|") ändras eller tas bort – inget annat i kalendern rörs.
+  // ======================================================================
+  const KAL = { user: 'tomas-m-andersson', repo: 'kalender-data', fil: 'kalender.json', kalId: 'c_skidor', kalNamn: 'Skidor', farg: '#2f7de1' };
+  const kalGid = (id) => 'skidor|' + id;
+  st.kal = lagra.hamta('kal', false);
+  st.kalStatus = '';
+  // Kalender-appen ligger på samma webbadress och sparar sin token under "kal_gh"
+  function kalToken() {
+    try { const t = JSON.parse(localStorage.getItem('kal_gh') || '""'); if (t) return t; } catch { /* ignoreras */ }
+    return lagra.hamta('kalToken', '');
+  }
+  function kalGh(vag, opt = {}) {
+    return fetch('https://api.github.com' + vag, {
+      method: opt.method || 'GET', body: opt.body, cache: 'no-store',
+      headers: { Authorization: 'Bearer ' + kalToken(), Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(opt.headers || {}) }
+    });
+  }
+  const kalVag = () => `/repos/${KAL.user}/${KAL.repo}/contents/${KAL.fil}`;
+  const b64ut = (str) => { const b = new TextEncoder().encode(str); let bin = ''; for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(bin); };
+  const b64in = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, '')), (c) => c.charCodeAt(0)));
+  async function kalLas() {
+    const r = await kalGh(kalVag());
+    if (r.status === 401) throw new Error('Din GitHub-token godkändes inte.');
+    if (r.status === 404 || r.status === 403) throw new Error('Hittar inte kalender.json – öppna Kalender-appen en gång först.');
+    if (!r.ok) throw new Error('GitHub svarade ' + r.status);
+    const j = await r.json();
+    let text = j.content ? b64in(j.content) : '';
+    if (!text) { const raw = await kalGh(kalVag(), { headers: { Accept: 'application/vnd.github.raw' } }); text = await raw.text(); }
+    const data = JSON.parse(text);
+    if (!data || !Array.isArray(data.events) || !Array.isArray(data.calendars)) throw new Error('kalender.json ser inte ut som väntat – inget ändrat.');
+    return { data, sha: j.sha };
+  }
+  async function kalSpara(data, sha, msg) {
+    const r = await kalGh(kalVag(), { method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'SKIDOR: ' + msg, content: b64ut(JSON.stringify(data, null, 2)), sha }) });
+    if (r.status === 409 || r.status === 422) throw new Error('krock');
+    if (r.status === 404 || r.status === 403) throw new Error('Din token får inte skriva i kalender-data.');
+    if (!r.ok) throw new Error('GitHub svarade ' + r.status);
+  }
+  // Läser senaste filen, gör ändringen, sparar. Krockar det (Kalender-appen sparade samtidigt) görs det om en gång.
+  async function kalAndra(fn, msg) {
+    for (let forsok = 1; ; forsok++) {
+      const { data, sha } = await kalLas();
+      const antalAndra = data.events.filter((x) => !String(x.gid || '').startsWith('skidor|')).length;
+      const andrat = fn(data);
+      if (!andrat) return data;
+      // Säkerhetskontroll: SKIDOR får aldrig ta bort andra händelser än sina egna
+      if (data.events.filter((x) => !String(x.gid || '').startsWith('skidor|')).length !== antalAndra) throw new Error('Säkerhetsspärr – inget sparat.');
+      data.updated = new Date().toISOString();
+      try { await kalSpara(data, sha, msg); return data; }
+      catch (fel) { if (fel.message !== 'krock' || forsok >= 2) throw fel; }
+    }
+  }
+  const kalTid = (d) => `${dagNyckel(d)}T${new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(d)}`;
+  function kalHandelse(e) {
+    const titel = `${sportNamn(e)}: ${rubrik(e)} – ${e.ort}`;
+    const bas = {
+      id: 'skidor_' + e.id.replace(/[^a-z0-9-]/gi, ''), gid: kalGid(e.id), cal: KAL.kalId, title: titel,
+      location: e.kanal?.length ? e.kanal.join(', ') : 'Kanal ej klar',
+      desc: beskrivning(e) + '\n\nFrån SKIDOR: https://tomas-m-andersson.github.io/skidor/',
+      // SKIDOR skickar redan push-notisen när push är på – annars påminner kalendern
+      remind: st.push ? -1 : (e.start ? st.forvarning : -1)
+    };
+    if (e.start) return { ...bas, allDay: false, start: `${e.datum}T${e.start}`, end: kalTid(slutTid(e)) };
+    return { ...bas, allDay: true, start: e.datum, end: laggTillDagar(e.datum, 1) };
+  }
+  const kalLika = (a, b) => ['title', 'location', 'desc', 'allDay', 'start', 'end', 'remind', 'cal'].every((k) => JSON.stringify(a[k]) === JSON.stringify(b[k]));
+  function sakraKalender(data) {
+    if (data.calendars.some((c) => c.id === KAL.kalId)) return false;
+    data.calendars.push({ id: KAL.kalId, name: KAL.kalNamn, color: KAL.farg });
+    return true;
+  }
+  // Lägg till/uppdatera alla påminnelser (inga borttagningar). Hämtar också hem
+  // påminnelser som lagts i kalendern från en annan enhet.
+  let kalKo = Promise.resolve();
+  const kalKor = (jobb) => (kalKo = kalKo.then(jobb, jobb));
+  function kalSynkaAlla(tyst = true) {
+    if (!st.kal || !kalToken()) return Promise.resolve();
+    return kalKor(async () => {
+      try {
+        let hamtade = 0;
+        const data = await kalAndra((d) => {
+          let andrat = sakraKalender(d);
+          const finns = new Map(d.events.filter((x) => String(x.gid || '').startsWith('skidor|')).map((x) => [x.gid.slice(7), x]));
+          for (const id of finns.keys()) if (!st.paminn.has(id) && st.handelser.some((e) => e.id === id)) { st.paminn.add(id); hamtade++; }
+          for (const e of st.handelser) {
+            if (!st.paminn.has(e.id) || arPasserad(e)) continue;
+            const ny = kalHandelse(e), gammal = finns.get(e.id);
+            if (!gammal) { d.events.push(ny); andrat = true; }
+            else if (!kalLika(gammal, ny)) { Object.assign(gammal, ny, { id: gammal.id }); andrat = true; }
+          }
+          return andrat;
+        }, 'uppdaterar skidsändningar');
+        if (hamtade) { lagra.spara('paminn', [...st.paminn]); pushSynka(); rita(); }
+        st.kalStatus = `Kopplad – ${data.events.filter((x) => String(x.gid || '').startsWith('skidor|')).length} sändningar i kalendern "Skidor".`;
+        if (!tyst) toast('Påminnelserna ligger nu i din kalender');
+      } catch (fel) {
+        st.kalStatus = 'Fel: ' + fel.message;
+        if (!tyst) toast('Kalendern: ' + fel.message);
+      }
+      ritaKal();
+    });
+  }
+  function kalLaggTill(e) {
+    if (!st.kal || !kalToken()) return;
+    kalKor(async () => {
+      try {
+        await kalAndra((d) => {
+          sakraKalender(d);
+          const ny = kalHandelse(e), gammal = d.events.find((x) => x.gid === kalGid(e.id));
+          if (gammal) Object.assign(gammal, ny, { id: gammal.id }); else d.events.push(ny);
+          return true;
+        }, 'lägger till ' + rubrik(e));
+        toast('Sparad i Påminnelser och i din kalender');
+      } catch (fel) { toast('Kalendern: ' + fel.message); }
+    });
+  }
+  function kalTaBort(ids) {
+    if (!st.kal || !kalToken() || !ids.length) return;
+    const gids = new Set(ids.map(kalGid));
+    kalKor(async () => {
+      try {
+        await kalAndra((d) => {
+          const fore = d.events.length;
+          d.events = d.events.filter((x) => !gids.has(x.gid));
+          return d.events.length !== fore;
+        }, ids.length > 1 ? `tar bort ${ids.length} skidsändningar` : 'tar bort en skidsändning');
+      } catch (fel) { toast('Kalendern: ' + fel.message); }
+    });
+  }
+  function ritaKal() {
+    const vax = $('#kalVaxel'), info = $('#kalInfo'), tok = $('#kalTokenRad');
+    if (!vax) return;
+    const harToken = !!kalToken();
+    vax.checked = st.kal && harToken;
+    tok.hidden = harToken;
+    info.textContent = !harToken ? 'Lås upp Kalender-appen på den här enheten först, eller klistra in din GitHub-token nedan.'
+      : st.kal ? (st.kalStatus || 'Kopplad') : 'Klockan lägger då sändningen i kalendern "Skidor"';
+  }
+  $('#kalVaxel').onchange = async (ev) => {
+    if (ev.target.checked) {
+      if (!kalToken()) { ev.target.checked = false; ritaKal(); return toast('Klistra in din GitHub-token först'); }
+      const antal = st.handelser.filter((e) => st.paminn.has(e.id) && !arPasserad(e)).length;
+      if (!confirm(`SKIDOR lägger ${antal ? antal + ' påminnelser' : 'dina påminnelser'} i en egen kalender som heter "Skidor" i Kalender-appen.\n\nDina andra händelser rörs inte. Fortsätta?`)) { ev.target.checked = false; return; }
+      st.kal = true; lagra.spara('kal', true);
+      st.kalStatus = 'Kopplar…'; ritaKal();
+      await kalSynkaAlla(false);
+    } else {
+      st.kal = false; lagra.spara('kal', false); st.kalStatus = '';
+      toast('Klockan lägger inte längre något i kalendern. Det som redan ligger där finns kvar.');
+      ritaKal();
+    }
+  };
+  $('#kalTokenSpara').onclick = () => {
+    const t = $('#kalTokenFalt').value.trim();
+    if (!/^(github_pat_|ghp_)/.test(t)) return toast('Det ser inte ut som en GitHub-token');
+    lagra.spara('kalToken', t); $('#kalTokenFalt').value = '';
+    ritaKal(); toast('Token sparad på den här enheten');
+  };
 
   // ---------- Inställningar ----------
   function tillampaTema(t) {
@@ -886,6 +1054,7 @@
     $('#visaPasserade').checked = st.visaPasserade;
     $('#baraTid').checked = st.baraTid;
     ritaPush();
+    ritaKal();
     const upd = st.sasong?.uppdaterad;
     $('#datainfo').textContent = `Säsong ${st.sasong?.sasong || ''} · ${st.handelser.length} sändningar/tävlingar${upd ? ' · data uppdaterad ' + fDagKort.format(utcDag(upd)).replace(/\.$/, '') : ''}. Alla tider är svensk tid.`;
     $('#kallor').innerHTML = (st.sasong?.kallor || []).map((k) => `<li><a href="${esc(k.url)}" target="_blank" rel="noopener">${esc(k.namn)}</a></li>`).join('');
@@ -898,7 +1067,7 @@
     try { localStorage.setItem(LS + 'tema', ev.target.value); } catch { /* ignoreras */ }
     tillampaTema(ev.target.value);
   });
-  $('#forvarning').onchange = (ev) => { st.forvarning = Number(ev.target.value); lagra.spara('forvarning', st.forvarning); rita(); pushSynka(); };
+  $('#forvarning').onchange = (ev) => { st.forvarning = Number(ev.target.value); lagra.spara('forvarning', st.forvarning); rita(); pushSynka(); kalSynkaAlla(); };
   $('#visaPasserade').onchange = (ev) => { st.visaPasserade = ev.target.checked; lagra.spara('visaPasserade', st.visaPasserade); rita(); };
   $('#baraTid').onchange = (ev) => { st.baraTid = ev.target.checked; lagra.spara('baraTid', st.baraTid); rita(); };
   $('#push').onchange = async (ev) => {
@@ -925,6 +1094,7 @@
     }
     lagra.spara('push', st.push);
     ritaPush();
+    kalSynkaAlla();
   };
   $('#pushTest').onclick = async () => {
     try {
@@ -935,7 +1105,8 @@
   };
   $('#rensa').onclick = () => {
     if (!st.paminn.size) return toast('Du har inga påminnelser');
-    if (!confirm(`Ta bort alla ${st.paminn.size} påminnelser? Det går inte att ångra.`)) return;
+    if (!confirm(`Ta bort alla ${st.paminn.size} påminnelser? Det går inte att ångra.${st.kal ? '\n\nDe kommande sändningarna tas också bort ur kalendern "Skidor".' : ''}`)) return;
+    kalTaBort(st.handelser.filter((e) => st.paminn.has(e.id) && !arPasserad(e)).map((e) => e.id));
     st.paminn.clear();
     lagra.spara('paminn', []);
     rita();
@@ -969,6 +1140,7 @@
       $('#fot').innerHTML = `Alla tider är svensk tid. Tider och kanaler kan ändras – kolla gärna kanalens egen tablå. Källor finns under Inställningar.`;
       try { st.pushUrl = ((await hamtaJson('config.json')).pushServer || '').replace(/\/+$/, ''); } catch { /* ingen push */ }
       pushSynka();
+      kalSynkaAlla();
       setInterval(() => { if (!document.querySelector('dialog[open]')) { const y = scrollY; rita(); scrollTo({ top: y }); } }, 60e3);
       setInterval(async () => { await laddaResultat(); if (st.vy === 'resultat' && !document.querySelector('dialog[open]')) { const y = scrollY; rita(); scrollTo({ top: y }); } }, 5 * 60e3);
     } catch (fel) {

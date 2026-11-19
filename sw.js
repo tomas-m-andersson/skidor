@@ -1,8 +1,8 @@
 // Service worker: gör sidan installerbar och läsbar utan nät.
 // Nätet först för ALLA filer – den sparade kopian används bara när man saknar nät.
 // Byt versionsnumret när du ändrat filer (samma nummer som ?v= i index.html).
-const VERSION = 'skidor-v9';
-const SKAL = ['./', 'index.html', 'styles.css?v=9', 'app.js?v=9', 'manifest.webmanifest?v=9', 'icon.svg?v=9', 'icon-192.png?v=9', 'apple-touch-icon.png?v=9'];
+const VERSION = 'skidor-v10';
+const SKAL = ['./', 'index.html', 'styles.css?v=10', 'app.js?v=10', 'manifest.webmanifest?v=10', 'icon.svg?v=10', 'icon-192.png?v=10', 'apple-touch-icon.png?v=10'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -31,8 +31,8 @@ self.addEventListener('push', (e) => {
   e.waitUntil(self.registration.showNotification(d.titel || 'SKIDOR', {
     body: d.text || '',
     tag: d.tag || 'skidor',
-    icon: 'icon-192.png?v=9',
-    badge: 'badge-96.png?v=9',
+    icon: 'icon-192.png?v=10',
+    badge: 'badge-96.png?v=10',
     vibrate: [120, 60, 120],
     data: { url: './#mina' }
   }));

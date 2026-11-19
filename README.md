@@ -88,3 +88,13 @@ Ski Classics, Vasaloppet och SM finns inte med – arrangörerna har ingen gemen
 - **Lägg i kalendern** laddar ner en kalenderfil (.ics) med larm – öppna den så läggs sändningen in i mobilens kalender. Larmet fungerar även när sidan är stängd.
 
 Alla tider är svensk tid. Källor finns under Inställningar på sidan.
+
+## Min kalender (Kalender-appen)
+
+Under **Inställningar → Påminnelser → Lägg i Min kalender** kan klockan lägga sändningen direkt i Kalender-appen (repot `kalender`, data i privata `kalender-data`).
+
+- Sändningarna hamnar i en egen kalender som heter **Skidor**. SKIDOR ändrar och tar bara bort sina egna händelser – en spärr stoppar sparningen om något annat skulle påverkas.
+- Ändras en sändningstid i tablån uppdateras händelsen i kalendern nästa gång SKIDOR öppnas.
+- Är push-notiser på i SKIDOR får händelsen i kalendern ingen egen påminnelse (annars blir det dubbla notiser).
+- Samma GitHub-token som Kalender-appen används automatiskt. På en enhet där kalendern inte är upplåst kan token klistras in under inställningen.
+

@@ -7,9 +7,9 @@
   <meta name="description" content="TV-tablå och kalender för längdskidor, skidskytte, Ski Classics och Vasaloppet.">
   <meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
-  <link rel="manifest" href="manifest.webmanifest?v=9">
-  <link rel="icon" href="icon.svg?v=9" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=9">
+  <link rel="manifest" href="manifest.webmanifest?v=10">
+  <link rel="icon" href="icon.svg?v=10" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=10">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=10">
   <script>
     // Sätt tema innan sidan ritas, så den inte blinkar
     try { var t = localStorage.getItem('skidor.tema'); if (t === 'ljus' || t === 'mork') document.documentElement.dataset.theme = t === 'ljus' ? 'light' : 'dark'; } catch (e) {}
@@ -27,7 +27,7 @@
   <header class="topp">
     <div class="topp-rad">
       <a class="logo" href="./" aria-label="SKIDOR">
-        <img src="icon.svg?v=9" alt="" width="34" height="34">
+        <img src="icon.svg?v=10" alt="" width="34" height="34">
         <span>SKIDOR</span>
       </a>
       <label class="sasong">
@@ -91,6 +91,13 @@
           <input type="checkbox" id="push" class="vaxel">
         </label>
         <button type="button" class="knapp liten" id="pushTest" hidden style="margin-top:10px"><svg class="kikon" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg> Skicka testnotis</button>
+        <label class="rad"><span>Lägg i Min kalender<small id="kalInfo">Klockan lägger då sändningen i kalendern "Skidor"</small></span>
+          <input type="checkbox" id="kalVaxel" class="vaxel">
+        </label>
+        <div id="kalTokenRad" class="tokenrad" hidden>
+          <input type="password" id="kalTokenFalt" autocomplete="off" spellcheck="false" placeholder="github_pat_… eller ghp_…" aria-label="GitHub-token">
+          <button type="button" class="knapp liten" id="kalTokenSpara">Spara</button>
+        </div>
         <p class="hjalp">Tryck på klockan vid en sändning så får du en notis innan den börjar. Sändningar utan klar tid får en notis kl. 08.00 samma dag.</p>
         <details class="hjalp" id="pushBrave" hidden>
           <summary>Använder du Brave? Läs här om notiserna inte kommer</summary>
@@ -140,6 +147,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

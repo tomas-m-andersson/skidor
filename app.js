@@ -105,6 +105,8 @@
     if (l.startsWith('svt')) return 'svt';
     if (l.startsWith('viaplay')) return 'viaplay';
     if (l === 'tv6') return 'tv6';
+    if (l === 'kanal 5') return 'kanal5';
+    if (l.startsWith('hbo')) return 'hbo';
     return '';
   }
   function kanalHtml(e) {

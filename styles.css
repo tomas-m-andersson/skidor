@@ -340,3 +340,5 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
   .flikar button { flex: 0 1 auto; font-size: 13.5px; letter-spacing: 0; padding-left: 4px; padding-right: 4px; }
   .raknare { min-width: 18px; padding: 0 5px; font-size: 12px; line-height: 18px; }
 }
+.kanal.kanal5 { background: #e4002b; color: #fff; }
+.kanal.hbo { background: #002be7; color: #fff; }

@@ -363,3 +363,7 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
 .helg-innehall { padding: 0 10px 12px; }
 .helg-innehall .dag { margin-top: 8px; }
 .helg-innehall .dag-rubrik { position: static; background: none; }
+
+/* Säsongsväljaren lika hög som inställningsknappen */
+.sasong select { height: 40px; border-radius: 12px; padding-top: 0; padding-bottom: 0; line-height: 38px; }
+.ikonknapp svg { stroke-linejoin: round; }

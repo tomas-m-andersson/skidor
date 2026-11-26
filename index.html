@@ -7,9 +7,9 @@
   <meta name="description" content="TV-tablå och kalender för längdskidor, skidskytte, Ski Classics och Vasaloppet.">
   <meta name="theme-color" content="#f3f6fa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
-  <link rel="manifest" href="manifest.webmanifest?v=15">
-  <link rel="icon" href="icon.svg?v=15" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=15">
+  <link rel="manifest" href="manifest.webmanifest?v=16">
+  <link rel="icon" href="icon.svg?v=16" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=16">
   <script>
     // Sätt tema innan sidan ritas, så den inte blinkar
     try { var t = localStorage.getItem('skidor.tema'); if (t === 'ljus' || t === 'mork') document.documentElement.dataset.theme = t === 'ljus' ? 'light' : 'dark'; } catch (e) {}
@@ -27,7 +27,7 @@
   <header class="topp">
     <div class="topp-rad">
       <a class="logo" href="./" aria-label="SKIDOR">
-        <img src="icon.svg?v=15" alt="" width="34" height="34">
+        <img src="icon.svg?v=16" alt="" width="34" height="34">
         <span>SKIDOR</span>
       </a>
       <label class="sasong">
@@ -35,7 +35,7 @@
         <select id="sasong" aria-label="Säsong"></select>
       </label>
       <button class="ikonknapp" id="oppnaInst" aria-label="Inställningar">
-        <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
     </div>
     <nav class="flikar" role="tablist">
@@ -147,6 +147,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

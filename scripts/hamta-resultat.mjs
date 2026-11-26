@@ -279,6 +279,17 @@ export function fisCup(html) {
   }
   return { efter, rader };
 }
+// FIS visar en annan cup (t.ex. Australia/New Zealand Cup) när världscupen saknar ställning.
+// Godkänn bara ställningen om senaste loppet ("After ...") gick på en världscuport,
+// eller om cupen har så många lopp som bara världscupen har.
+const normOrt = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, ' ').trim();
+export function arVarldscup(efter, orter) {
+  if (!efter) return false;
+  const totalt = Number((efter.match(/\(\d+\/(\d+)\)/) || [])[1] || 0);
+  if (totalt >= 20) return true;
+  const text = normOrt(efter);
+  return orter.some((o) => normOrt(o).split(' ').some((ord) => ord.length >= 4 && text.includes(ord)));
+}
 const efterText = (s) => {
   const m = s.match(/\((\d+)\/(\d+)\)/);
   return m ? `Efter ${m[1]} av ${m[2]} lopp` : '';
@@ -331,6 +342,7 @@ async function hamtaFis(tidigare) {
     try {
       const { efter, rader } = fisCup(await hamta(`${FIS}/cross-country/cup-standings.html?sectorcode=CC&seasoncode=${SASONG.fis}&cupcode=WC&disciplinecode=ALL&gendercode=${kon}&nationcode=`));
       if (!rader.length) continue;
+      if (!arVarldscup(efter, helger.map((h) => h.ort))) { console.log(`FIS-cup ${kon}: ingen världscupställning än ("${efter}") – hoppar över.`); continue; }
       const del = (namn, nyckel) => {
         const r = rader.filter((x) => x[nyckel][0] != null && x[nyckel][1])
           .map((x) => ({ plats: x[nyckel][0], namn: x.namn, land: x.land, poang: x[nyckel][1] }))

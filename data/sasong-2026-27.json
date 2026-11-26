@@ -1,6 +1,6 @@
 {
   "sasong": "2026/27",
-  "uppdaterad": "2026-11-19",
+  "uppdaterad": "2026-11-26",
   "kallor": [
     {
       "namn": "SVT – Vinterstudion 2026/27 sändningstider",
@@ -27,6 +27,10 @@
       "url": "https://skiclassics.com"
     },
     {
+      "namn": "Hurbra.se – Världscupen i Ruka 2026",
+      "url": "https://hurbra.se/varldscupen-ruka-2026/"
+    },
+    {
       "namn": "Sportbibeln – HBO Max tar över Ski Classics",
       "url": "https://www.sportbibeln.se/skidor/hbo-max-tar-over-ski-classics/"
     }
@@ -44,13 +48,16 @@
     {"datum": "2026-11-22", "start": "12:05", "slut": "13:20", "sport": "langd", "serie": "premiar", "ort": "Bruksvallarna", "land": "SWE", "gren": "10 km fristil", "klass": "D", "kanal": ["SVT1", "SVT Play"], "notering": "SVT Play från 12.05, SVT1 från 12.30.", "id": "2026-11-22-langd-premiar-bruksvallarna-10-km-fristil-d"},
     {"datum": "2026-11-26", "start": "16:05", "slut": "18:00", "sport": "skidskytte", "serie": "vc", "ort": "Kontiolahti", "land": "FIN", "gren": "Distans", "klass": "H", "kanal": ["SVT1", "SVT Play"], "id": "2026-11-26-skidskytte-vc-kontiolahti-distans-h"},
     {"datum": "2026-11-27", "start": "16:05", "slut": "18:00", "sport": "skidskytte", "serie": "vc", "ort": "Kontiolahti", "land": "FIN", "gren": "Distans", "klass": "D", "kanal": ["SVT1", "SVT Play"], "id": "2026-11-27-skidskytte-vc-kontiolahti-distans-d"},
-    {"datum": "2026-11-27", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "10 km intervallstart, klassiskt", "klass": "DH", "kanal": ["Viaplay"], "notering": "Viaplays tider ej publicerade.", "id": "2026-11-27-langd-vc-ruka-10-km-intervallsta-dh"},
+    {"datum": "2026-11-27", "start": "10:30", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "10 km intervallstart, klassiskt", "klass": "D", "kanal": ["Viaplay Sport", "Viaplay"], "notering": "Viaplay Sport sänder 10.00–14.30 (studio från 10.00).", "id": "2026-11-27-langd-vc-ruka-10-km-intervallsta-dh"},
+    {"datum": "2026-11-27", "start": "13:00", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "10 km intervallstart, klassiskt", "klass": "H", "kanal": ["Viaplay Sport", "Viaplay"], "notering": "Viaplay Sport sänder 10.00–14.30. En källa anger start 13.15.", "id": "2026-11-27-langd-vc-ruka-10-km-intervallsta-h"},
     {"datum": "2026-11-28", "start": "13:10", "slut": "13:55", "sport": "skidskytte", "serie": "vc", "ort": "Kontiolahti", "land": "FIN", "gren": "Singelmixstafett", "klass": "Mix", "kanal": ["SVT1", "SVT Play"], "id": "2026-11-28-skidskytte-vc-kontiolahti-singelmixstafett-mix"},
     {"datum": "2026-11-28", "start": "15:15", "slut": "16:25", "sport": "skidskytte", "serie": "vc", "ort": "Kontiolahti", "land": "FIN", "gren": "Mixstafett", "klass": "Mix", "kanal": ["SVT1", "SVT Play"], "id": "2026-11-28-skidskytte-vc-kontiolahti-mixstafett-mix"},
-    {"datum": "2026-11-28", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "Sprint, klassiskt", "klass": "DH", "kanal": ["Viaplay"], "notering": "Viaplays tider ej publicerade.", "id": "2026-11-28-langd-vc-ruka-sprint-klassiskt-dh"},
+    {"datum": "2026-11-28", "start": "08:45", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "Sprint kval, klassiskt", "klass": "DH", "kanal": ["Viaplay Sport", "Viaplay"], "notering": "Viaplay Sport sänder 08.30–13.30 (studio från 08.30).", "id": "2026-11-28-langd-vc-ruka-sprint-klassiskt-dh"},
+    {"datum": "2026-11-28", "start": "11:15", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "Sprint finaler, klassiskt", "klass": "DH", "kanal": ["Viaplay Sport", "Viaplay"], "notering": "Viaplay Sport sänder 08.30–13.30.", "id": "2026-11-28-langd-vc-ruka-sprint-finaler-dh"},
     {"datum": "2026-11-29", "start": "13:00", "slut": "14:20", "sport": "skidskytte", "serie": "vc", "ort": "Kontiolahti", "land": "FIN", "gren": "Sprint", "klass": "H", "kanal": ["SVT1", "SVT Play"], "id": "2026-11-29-skidskytte-vc-kontiolahti-sprint-h"},
     {"datum": "2026-11-29", "start": "16:15", "slut": "17:30", "sport": "skidskytte", "serie": "vc", "ort": "Kontiolahti", "land": "FIN", "gren": "Sprint", "klass": "D", "kanal": ["SVT1", "SVT Play"], "id": "2026-11-29-skidskytte-vc-kontiolahti-sprint-d"},
-    {"datum": "2026-11-29", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "20 km masstart, fristil", "klass": "DH", "kanal": ["Viaplay"], "notering": "Viaplays tider ej publicerade.", "id": "2026-11-29-langd-vc-ruka-20-km-masstart-fri-dh"},
+    {"datum": "2026-11-29", "start": "10:00", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "20 km masstart, fristil", "klass": "H", "kanal": ["Viaplay Sport", "Viaplay"], "notering": "Viaplay Sport sänder 09.30–13.30 (studio från 09.30).", "id": "2026-11-29-langd-vc-ruka-20-km-masstart-fri-dh"},
+    {"datum": "2026-11-29", "start": "11:55", "sport": "langd", "serie": "vc", "ort": "Ruka", "land": "FIN", "gren": "20 km masstart, fristil", "klass": "D", "kanal": ["Viaplay Sport", "Viaplay"], "notering": "Viaplay Sport sänder 09.30–13.30.", "id": "2026-11-29-langd-vc-ruka-20-km-masstart-fri-d"},
     {"datum": "2026-12-04", "start": "11:15", "slut": "12:50", "sport": "skidskytte", "serie": "vc", "ort": "Hochfilzen", "land": "AUT", "gren": "Sprint", "klass": "D", "kanal": ["SVT1", "SVT Play"], "id": "2026-12-04-skidskytte-vc-hochfilzen-sprint-d"},
     {"datum": "2026-12-04", "start": "14:05", "slut": "15:45", "sport": "skidskytte", "serie": "vc", "ort": "Hochfilzen", "land": "AUT", "gren": "Sprint", "klass": "H", "kanal": ["SVT1", "SVT Play"], "id": "2026-12-04-skidskytte-vc-hochfilzen-sprint-h"},
     {"datum": "2026-12-04", "sport": "langd", "serie": "vc", "ort": "Trondheim", "land": "NOR", "gren": "10 km intervallstart, klassiskt", "klass": "DH", "kanal": ["Viaplay"], "notering": "Viaplays tider ej publicerade.", "id": "2026-12-04-langd-vc-trondheim-10-km-intervallsta-dh"},

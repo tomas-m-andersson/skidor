@@ -378,16 +378,19 @@ async function main() {
 
   const innehall = { sasong: SASONG.id.replace('-', '/'), lopp, cuper };
   const gammalJson = JSON.stringify({ sasong: tidigareData.sasong, lopp: tidigareData.lopp, cuper: tidigareData.cuper });
-  if (JSON.stringify(innehall) === gammalJson) {
+  const nu = new Date().toISOString();
+  const nytt = JSON.stringify(innehall) !== gammalJson;
+  const senastKoll = Date.parse(tidigareData.kontrollerad || tidigareData.uppdaterad || 0) || 0;
+  if (!nytt && Date.now() - senastKoll < 3 * 3600e3) {
     console.log('Inga nya resultat.');
   } else {
-    const ut = { uppdaterad: new Date().toISOString(), ...innehall };
-    // Ett lopp/en cup per rad: liten fil men ändå läsbar
+    // "uppdaterad" = senaste nya resultat, "kontrollerad" = senaste hämtning
+    const uppdaterad = nytt ? nu : (tidigareData.uppdaterad || nu);
     const rad = (x) => '    ' + JSON.stringify(x);
-    const text = `{\n  "uppdaterad": ${JSON.stringify(ut.uppdaterad)},\n  "sasong": ${JSON.stringify(ut.sasong)},\n  "lopp": [\n${lopp.map(rad).join(',\n')}\n  ],\n  "cuper": [\n${cuper.map(rad).join(',\n')}\n  ]\n}\n`;
+    const text = `{\n  "uppdaterad": ${JSON.stringify(uppdaterad)},\n  "kontrollerad": ${JSON.stringify(nu)},\n  "sasong": ${JSON.stringify(innehall.sasong)},\n  "lopp": [\n${lopp.map(rad).join(',\n')}\n  ],\n  "cuper": [\n${cuper.map(rad).join(',\n')}\n  ]\n}\n`;
     JSON.parse(text); // kontroll: giltig JSON
     await fs.writeFile(FIL, text);
-    console.log(`Sparade ${lopp.length} lopp och ${cuper.length} cupställningar.`);
+    console.log(nytt ? `Sparade ${lopp.length} lopp och ${cuper.length} cupställningar.` : 'Inget nytt – sparade bara kontrolltiden.');
   }
   if (fel.length) { console.error('Fel:', fel.join(' | ')); if (fel.length === 2) process.exitCode = 1; }
 }

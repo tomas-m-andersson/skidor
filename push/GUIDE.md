@@ -111,3 +111,43 @@ Skicka adressen från steg 2 till Claude, så lägger Claude in den i filen `con
 - **Kostnad:** gratisnivån räcker gott (tjänsten använder ungefär 1 500 läsningar per dygn av 100 000 gratis).
 - **Säkerhet:** tjänsten skapar sina egna krypteringsnycklar första gången och sparar dem i KV-lagringen. Du behöver aldrig hantera några hemliga nycklar.
 - **Uppdatera koden senare:** upprepa steg 5 med den nya `worker.js`.
+
+
+---
+
+# Del 2 – Låt push-tjänsten starta resultathämtningen (ca 10 min)
+
+GitHubs eget schema kör resultathämtningen bara var 6–10:e timme. Push-tjänsten hos Cloudflare körs varje minut och kan i stället säga åt GitHub att hämta **var 20:e minut**, och starttiderna två gånger per dygn. Då behöver den en egen GitHub-token som **bara** får starta jobb i repot skidor.
+
+## Steg A – Skapa en GitHub-token för jobben
+
+1. Gå till **https://github.com/settings/personal-access-tokens/new**
+   *(Eller: klicka på din profilbild uppe till höger på github.com → **Settings** → längst ner till vänster **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.)*
+2. **Token name:** skriv `skidor-push`
+3. **Expiration:** välj den längsta tiden som finns i listan (t.ex. 1 år). Skriv upp datumet – då behöver tokenen förnyas.
+4. **Repository access:** välj **Only select repositories** och välj **skidor** i listan.
+5. Under **Permissions** → **Repository permissions**: leta upp **Actions** och välj **Read and write**. Ändra inget annat.
+6. Klicka på den gröna knappen **Generate token** längst ner (bekräfta om den frågar).
+7. **Du ska nu se** en lång kod som börjar med `github_pat_`. Klicka på kopieringsikonen bredvid. Den visas bara en gång – stäng inte sidan förrän steg B är klart.
+
+## Steg B – Lägg tokenen som hemlighet i Cloudflare
+
+1. Gå till Cloudflare → **Workers & Pages** → klicka på **skidor-push**.
+2. Klicka på **Settings** → **Variables and Secrets** → **Add**.
+3. **Type:** välj **Secret**.
+4. **Variable name:** skriv exakt `GITHUB_TOKEN` (versaler, med understreck).
+5. **Value:** klistra in tokenen från steg A (Ctrl+V).
+6. Klicka på **Deploy** (eller **Save**).
+
+## Steg C – Klistra in den nya koden
+
+Gör om **steg 5** i del 1 ovan med den nya `push/worker.js` (Copy raw file → Edit code → Ctrl+A → Ctrl+V → Deploy).
+
+## Steg D – Kontrollera
+
+1. Vänta upp till 20 minuter.
+2. Öppna adressen till tjänsten: **https://skidor-push.tomas-m-andersson.workers.dev**
+3. **Du ska se** en rad som innehåller `"github":"resultat.yml: startad ...`.
+   - Står det `ingen GITHUB_TOKEN` → gör om steg B och kontrollera stavningen.
+   - Står det `fel 403` eller `fel 404` → tokenen saknar rättigheten **Actions: Read and write** för repot skidor. Gör om steg A.
+   - Står det `fel 401` → tokenen har gått ut eller kopierades inte hela. Gör om steg A och B.

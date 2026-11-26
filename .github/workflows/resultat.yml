@@ -1,11 +1,15 @@
 # Hämtar tävlingsresultat och cupställningar automatiskt och sparar dem i
-# data/resultat-<säsong>.json. Körs var 20:e minut (GitHub kan försena körningarna en stund).
+# data/resultat-<säsong>.json. Startas var 20:e minut av push-tjänsten hos Cloudflare
+# (GitHubs eget schema nedan är bara reserv – det körs i praktiken bara var 6–10:e timme).
 name: Hämta resultat
 
 on:
   schedule:
     - cron: '7,27,47 * * * *'
   workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ['scripts/hamta-resultat.mjs']
 
 permissions:
   contents: write

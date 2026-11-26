@@ -399,6 +399,7 @@
       (!st.serier.size || st.serier.has(l.serie)));
   }
 
+  const forstaText = (f) => f === idagNyckel() ? 'Världscupen börjar idag – resultaten dyker upp här efter loppen.' : `Första världscuptävlingen är ${esc(dagEtikett(f))}.`;
   function forstaTavling() {
     const nu = idagNyckel();
     const e = st.handelser.find((x) => ['vc', 'tds', 'vm'].includes(x.serie) && x.datum >= nu);
@@ -412,7 +413,7 @@
     </div>`;
     if (!st.res) {
       const f = forstaTavling();
-      $('#innehall').innerHTML = seg + `<div class="tomt"><b>Inga resultat ännu</b>${f ? `Första världscuptävlingen är ${esc(dagEtikett(f))}. Resultaten dyker upp här automatiskt efter varje lopp.` : 'Resultaten dyker upp här automatiskt efter varje lopp.'}</div>`;
+      $('#innehall').innerHTML = seg + `<div class="tomt"><b>Inga resultat ännu</b>${f ? forstaText(f) : 'Resultaten dyker upp här automatiskt efter varje lopp.'}</div>`;
     } else if (st.resVy === 'cup') {
       $('#innehall').innerHTML = seg + cupHtml();
     } else {
@@ -437,11 +438,12 @@
 
   function senasteHtml() {
     const lista = resFiltrerade();
-    const upd = st.res.uppdaterad ? new Date(st.res.uppdaterad) : null;
-    const updText = upd ? `<p class="hjalp res-upd">Uppdaterad ${dagNyckel(upd)} ${new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(upd)}</p>` : '';
+    const tidText = (iso) => { const d = new Date(iso); return `${dagNyckel(d)} ${new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(d)}`; };
+    const koll = st.res.kontrollerad || st.res.uppdaterad;
+    const updText = koll ? `<p class="hjalp res-upd">Senast kontrollerad ${tidText(koll)}${st.res.lopp.length && st.res.uppdaterad ? ` · nya resultat ${tidText(st.res.uppdaterad)}` : ''}</p>` : '';
     if (!lista.length) {
       const f = forstaTavling();
-      return `<div class="tomt"><b>Inga resultat ännu</b>${st.res.lopp.length ? 'Inga lopp matchar filtret.' : (f ? `Första världscuptävlingen är ${esc(dagEtikett(f))}.` : '')}</div>${updText}`;
+      return `<div class="tomt"><b>Inga resultat ännu</b>${st.res.lopp.length ? 'Inga lopp matchar filtret.' : (f ? forstaText(f) : '')}</div>${updText}`;
     }
     let html = updText;
     const dagar = new Map();
@@ -816,7 +818,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=11" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=12" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -868,7 +870,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=11" alt="">
+      <img src="icon.svg?v=12" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>

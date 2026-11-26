@@ -30,7 +30,9 @@ export default {
     try {
       if (req.method === 'GET' && url.pathname === '/') {
         const alla = await hamtaAlla(env);
-        return svar({ ok: true, tjanst: 'SKIDOR push', enheter: Object.keys(alla).length });
+        const gh = await env.SKIDOR_KV.get('github-senast', 'json');
+        return svar({ ok: true, tjanst: 'SKIDOR push', enheter: Object.keys(alla).length,
+          github: !env.GITHUB_TOKEN ? 'ingen GITHUB_TOKEN – startar inga hämtningar' : (gh ? `${gh.fil}: ${gh.status === 204 ? 'startad' : 'fel ' + (gh.status || gh.fel)} ${gh.tid}` : 'väntar på första starten') });
       }
       if (req.method === 'GET' && url.pathname === '/nyckel') {
         const n = await vapidNycklar(env);
@@ -68,11 +70,36 @@ export default {
     }
   },
 
-  // Körs varje minut: skicka påminnelser vars tid har kommit
-  async scheduled(_event, env, ctx) {
+  // Körs varje minut: skicka påminnelser vars tid har kommit,
+  // och starta SKIDOR:s hämtningar hos GitHub på bestämda minuter
+  async scheduled(event, env, ctx) {
     ctx.waitUntil(skickaForfallna(env));
+    ctx.waitUntil(startaGithub(env, new Date(event.scheduledTime || Date.now())));
   }
 };
+
+// ---------- Starta GitHub-hämtningar (GitHubs egna schema är opålitligt) ----------
+// Kräver hemligheten GITHUB_TOKEN (se push/GUIDE.md, del 2). Utan den görs inget.
+const GITHUB_REPO = 'tomas-m-andersson/skidor';
+async function startaGithub(env, tid) {
+  if (!env.GITHUB_TOKEN) return;
+  const m = tid.getUTCMinutes(), h = tid.getUTCHours();
+  const jobb = [];
+  if (m % 20 === 7) jobb.push('resultat.yml');                 // resultat var 20:e minut
+  if (m === 41 && (h === 5 || h === 15)) jobb.push('tider.yml'); // starttider två gånger per dygn
+  for (const fil of jobb) {
+    try {
+      const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/actions/workflows/${fil}/dispatches`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json', 'User-Agent': 'skidor-push', 'X-GitHub-Api-Version': '2022-11-28' },
+        body: JSON.stringify({ ref: 'main' })
+      });
+      await env.SKIDOR_KV.put('github-senast', JSON.stringify({ fil, status: r.status, tid: tid.toISOString() }));
+    } catch (fel) {
+      await env.SKIDOR_KV.put('github-senast', JSON.stringify({ fil, fel: String(fel), tid: tid.toISOString() }));
+    }
+  }
+}
 
 async function skickaForfallna(env) {
   const alla = await hamtaAlla(env);

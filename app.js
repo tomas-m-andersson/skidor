@@ -462,13 +462,39 @@
       const f = forstaTavling();
       return `<div class="tomt"><b>Inga resultat ännu</b>${st.res.lopp.length ? 'Inga lopp matchar filtret.' : (f ? forstaText(f) : '')}</div>${updText}`;
     }
-    let html = updText;
-    const dagar = new Map();
-    for (const l of lista) { if (!dagar.has(l.datum)) dagar.set(l.datum, []); dagar.get(l.datum).push(l); }
-    for (const [dag, lopp] of dagar) {
-      html += `<section class="dag"><div class="dag-rubrik"><h3>${esc(dagEtikett(dag))}</h3>${dag === idagNyckel() ? '<span class="idag">Idag</span>' : ''}</div><div class="lista">`;
-      for (const l of lopp) html += resKortHtml(l);
-      html += '</div></section>';
+    // Senaste tävlingshelgen = lopp inom 3 dagar från det nyaste loppet. Resten blir "Tidigare tävlingar".
+    const sorterad = lista.slice().sort((a, b) => (b.datum + b.tid).localeCompare(a.datum + a.tid));
+    const grans = laggTillDagar(sorterad[0].datum, -3);
+    const senaste = sorterad.filter((l) => l.datum > grans);
+    const tidigare = sorterad.filter((l) => l.datum <= grans);
+    const perDag = (lopp) => {
+      let h = '';
+      const dagar = new Map();
+      for (const l of lopp) { if (!dagar.has(l.datum)) dagar.set(l.datum, []); dagar.get(l.datum).push(l); }
+      for (const [dag, ls] of dagar) {
+        h += `<section class="dag"><div class="dag-rubrik"><h3>${esc(dagEtikett(dag))}</h3>${dag === idagNyckel() ? '<span class="idag">Idag</span>' : ''}</div><div class="lista">${ls.map(resKortHtml).join('')}</div></section>`;
+      }
+      return h;
+    };
+    let html = updText + perDag(senaste);
+    if (tidigare.length) {
+      // Gruppera per tävlingsort och sport (en tävlingshelg), nyast först
+      const helger = [];
+      for (const l of tidigare) {
+        const h = helger.find((x) => x.ort === l.ort && x.sport === l.sport && x.serie === l.serie && laggTillDagar(l.datum, 4) >= x.fran);
+        if (h) { h.lopp.push(l); if (l.datum < h.fran) h.fran = l.datum; }
+        else helger.push({ ort: l.ort, sport: l.sport, serie: l.serie, fran: l.datum, till: l.datum, lopp: [l] });
+      }
+      html += `<h3 class="tidigare-rubrik">Tidigare tävlingar</h3><div class="tidigare">`;
+      for (const h of helger) {
+        const s = serie(h.lopp[0]);
+        const datum = h.fran === h.till ? h.fran : `${h.fran} – ${h.till}`;
+        html += `<details class="helg" style="--c:${s.farg}">
+          <summary><span class="helg-ort">${esc(h.ort)}</span><span class="helg-info">${esc(sportNamn(h.lopp[0]))} · ${esc(s.namn)} · ${esc(datum)} · ${h.lopp.length} lopp</span></summary>
+          <div class="helg-innehall">${perDag(h.lopp)}</div>
+        </details>`;
+      }
+      html += '</div>';
     }
     return html;
   }
@@ -836,7 +862,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=14" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=15" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -888,7 +914,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=14" alt="">
+      <img src="icon.svg?v=15" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>

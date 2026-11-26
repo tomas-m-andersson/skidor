@@ -349,3 +349,17 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
 .flagga { font-size: 15px; line-height: 1; }
 .helalistan { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--accent); }
 .restabell tr.swe td { font-weight: 600; }
+
+/* Tidigare tävlingar */
+.tidigare-rubrik { margin: 28px 0 10px; font: 700 20px var(--font-k); text-transform: uppercase; letter-spacing: .03em; }
+.tidigare { display: grid; gap: 8px; }
+.helg { background: var(--yta); border: 1px solid var(--linje); border-left: 4px solid var(--c); border-radius: var(--radie); }
+.helg summary { list-style: none; cursor: pointer; padding: 12px 14px; display: grid; gap: 2px; position: relative; padding-right: 40px; }
+.helg summary::-webkit-details-marker { display: none; }
+.helg summary::after { content: ""; position: absolute; right: 16px; top: 50%; width: 9px; height: 9px; border-right: 2px solid var(--text3); border-bottom: 2px solid var(--text3); transform: translateY(-70%) rotate(45deg); transition: transform .2s; }
+.helg[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+.helg-ort { font-weight: 700; font-size: 17px; }
+.helg-info { color: var(--text2); font-size: 14px; }
+.helg-innehall { padding: 0 10px 12px; }
+.helg-innehall .dag { margin-top: 8px; }
+.helg-innehall .dag-rubrik { position: static; background: none; }

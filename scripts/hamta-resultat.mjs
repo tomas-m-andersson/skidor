@@ -17,7 +17,7 @@ const ROT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sasongId = process.env.RESULTAT_SASONG || JSON.parse(await fs.readFile(path.join(ROT, 'data', 'sasonger.json'), 'utf8')).standard;
 const SASONG = { id: sasongId, ibu: sasongId.slice(2, 4) + sasongId.slice(5, 7), fis: '20' + sasongId.slice(5, 7) };
 const FIL = path.join(ROT, 'data', `resultat-${SASONG.id}.json`);
-const TOPP = 30;          // antal placeringar som sparas per lopp/cup (+ alla svenskar)
+const TOPP = Infinity;    // hela resultatlistan sparas (sätt t.ex. 30 för bara topp 30 + alla svenskar)
 const TZ = 'Europe/Stockholm';
 const UA = 'Mozilla/5.0 (compatible; SKIDOR-resultat/1.0; +https://github.com/tomas-m-andersson/skidor)';
 

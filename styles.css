@@ -347,3 +347,5 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
 .tokenrad[hidden] { display: none; }
 .landkod-grupp { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .flagga { font-size: 15px; line-height: 1; }
+.helalistan { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--accent); }
+.restabell tr.swe td { font-weight: 600; }

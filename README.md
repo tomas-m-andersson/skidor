@@ -78,7 +78,7 @@ Fliken **Resultat** fylls på automatiskt. Var 20:e minut kör GitHub ett litet 
 - **Skidskytte** (världscup + VM): från IBU:s öppna data – samma som biathlonworld.com använder.
 - **Längd** (världscup, Tour de Ski, VM): avläses från FIS resultatsidor (fis-ski.com).
 
-Programmet sparar topp 30 och alla svenskar per lopp i `data/resultat-<säsong>.json` och laddar upp filen själv, bara när något nytt har hänt.
+Programmet sparar hela resultatlistan för varje lopp i `data/resultat-<säsong>.json` och laddar upp filen själv, bara när något nytt har hänt.
 
 > ⚠️ Ändra inte resultatfilen för hand – den skrivs över vid nästa hämtning.
 

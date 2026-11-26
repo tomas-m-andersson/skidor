@@ -485,6 +485,7 @@
         <div class="titel">${esc(loppRubrik(l))}</div>
         <div class="ort">${esc(l.ort)} · ${esc(l.tid)}</div>
         <ol class="podium">${topp.map((r) => rad(r)).join('')}${visaSvensk ? rad(svensk, 'bastasve') : ''}</ol>
+        ${l.rader.length > 3 ? `<span class="helalistan">Hela resultatet (${l.rader.length} ${l.lag ? 'lag' : 'åkare'})</span>` : ''}
       </div>
     </article>`;
   }
@@ -514,7 +515,7 @@
         <thead><tr><th>Pl</th><th>${l.lag ? 'Lag' : 'Namn'}</th><th>Land</th>${skytte ? '<th>Skytte</th>' : ''}<th>Tid</th></tr></thead>
         <tbody>${rader}</tbody>
       </table>
-      <p class="hjalp">Visar topp 30 och alla svenskar${antal ? '' : ''}. <a href="${esc(l.kalla)}" target="_blank" rel="noopener">Fullständigt resultat hos ${l.sport === 'skidskytte' ? 'IBU' : 'FIS'}</a></p>`;
+      <p class="hjalp">${antal} ${l.lag ? 'lag' : 'åkare'}. Svenska åkare är markerade. <a href="${esc(l.kalla)}" target="_blank" rel="noopener">Resultatet hos ${l.sport === 'skidskytte' ? 'IBU' : 'FIS'}</a></p>`;
     const dlg = $('#detalj');
     $('#stangDetalj').onclick = () => dlg.close();
     if (!dlg.open) dlg.showModal();
@@ -548,7 +549,7 @@
           return `${glapp}<tr class="${r.land === 'SWE' ? 'swe' : ''}"><td class="pl">${r.plats ?? '–'}</td><td class="nm">${esc(r.namn)}</td><td>${landKod(r.land)}</td><td class="tm">${r.poang}</td></tr>`;
         }).join('')}</tbody>
       </table>
-      <p class="hjalp">Visar topp 30 och alla svenskar. Svenska åkare är markerade.</p>`;
+      <p class="hjalp">${cup.rader.length} åkare med poäng. Svenska åkare är markerade.</p>`;
     return html;
   }
 
@@ -835,7 +836,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=13" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=14" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -887,7 +888,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=13" alt="">
+      <img src="icon.svg?v=14" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>

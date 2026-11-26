@@ -369,7 +369,24 @@
   const dagEtikett = (nyckel) => `${stor(fVeckodag.format(utcDag(nyckel)).replace('.', ''))} ${isoDatum(nyckel)}`;
   const klassKort = (k) => ({ D: 'Damer', H: 'Herrar', Mix: 'Mixed' }[k] || '');
   const loppRubrik = (l) => `${l.gren}${l.klass === 'D' || l.klass === 'H' ? ` (${l.klass})` : ''}`;
-  const landKod = (land) => land ? `<span class="landkod">${esc(land)}</span>` : '';
+  // IOC-landskod (som FIS och IBU använder) -> ISO-kod för flaggan
+  const IOC_ISO = {
+    SWE: 'SE', NOR: 'NO', FIN: 'FI', GER: 'DE', FRA: 'FR', ITA: 'IT', AUT: 'AT', SUI: 'CH', USA: 'US', CAN: 'CA',
+    CZE: 'CZ', SLO: 'SI', EST: 'EE', POL: 'PL', UKR: 'UA', BUL: 'BG', SVK: 'SK', LAT: 'LV', LTU: 'LT', BEL: 'BE',
+    JPN: 'JP', KAZ: 'KZ', CHN: 'CN', GBR: 'GB', ROU: 'RO', AUS: 'AU', NZL: 'NZ', MAS: 'MY', KOR: 'KR', ESP: 'ES',
+    AND: 'AD', ARG: 'AR', BRA: 'BR', CRO: 'HR', HUN: 'HU', ISL: 'IS', IRL: 'IE', NED: 'NL', DEN: 'DK', SRB: 'RS',
+    MDA: 'MD', BLR: 'BY', RUS: 'RU', MGL: 'MN', ARM: 'AM', GRE: 'GR', TUR: 'TR', MKD: 'MK', BIH: 'BA', MNE: 'ME',
+    CHI: 'CL', MEX: 'MX', IND: 'IN', IRI: 'IR', LIE: 'LI', MON: 'MC', POR: 'PT', ISR: 'IL', GEO: 'GE', KGZ: 'KG',
+    HKG: 'HK', TPE: 'TW', THA: 'TH', PHI: 'PH', RSA: 'ZA', LUX: 'LU', CYP: 'CY', ALB: 'AL', UZB: 'UZ', TJK: 'TJ',
+    PAK: 'PK', LIB: 'LB', COL: 'CO', PER: 'PE', VEN: 'VE', ECU: 'EC', BOL: 'BO', URU: 'UY', MAR: 'MA', NGR: 'NG',
+    KEN: 'KE', ETH: 'ET', EGY: 'EG', SIN: 'SG', INA: 'ID', VIE: 'VN', NEP: 'NP', AZE: 'AZ', KOS: 'XK', MLT: 'MT',
+    SMR: 'SM', FAR: 'FO', GRL: 'GL'
+  };
+  const flaggaFor = (land) => {
+    const iso = IOC_ISO[land];
+    return iso && iso !== 'XK' ? String.fromCodePoint(...[...iso].map((c) => 0x1F1E6 + c.charCodeAt(0) - 65)) : '';
+  };
+  const landKod = (land) => land ? `<span class="landkod-grupp">${flaggaFor(land) ? `<span class="flagga" aria-hidden="true">${flaggaFor(land)}</span>` : ''}<span class="landkod">${esc(land)}</span></span>` : '';
 
   // Resultat som hör till en sändning i tablån (samma dag, sport och klass)
   function resultatFor(e) {
@@ -818,7 +835,7 @@
   }
 
   function installHtml() {
-    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=12" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
+    const kort = (text) => `<div class="install-kort"><img src="icon.svg?v=13" alt=""><p><b>SKIDOR</b>${text}</p></div>`;
     if (arInstallerad()) return kort('✓ Du använder redan appen.');
     if (installPrompt) {
       return kort('Lägg sidan som en app på hemskärmen – öppnas i helskärm och fungerar även utan nät.') +
@@ -870,7 +887,7 @@
   function installBanner() {
     if (arInstallerad() || lagra.hamta('installDold', false)) return '';
     return `<div class="install-banner">
-      <img src="icon.svg?v=12" alt="">
+      <img src="icon.svg?v=13" alt="">
       <div><b>Installera som app</b>${arMobil ? 'Snabbt från hemskärmen, i helskärm.' : 'Eget fönster, snabbt från Start-menyn.'}</div>
       <button class="knapp liten primar" id="bannerInstall">${installPrompt ? 'Installera' : 'Visa hur'}</button>
       <button class="stang" id="bannerStang" aria-label="Dölj">✕</button>

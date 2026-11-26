@@ -345,3 +345,5 @@ legend { font: 600 13px var(--font-k); text-transform: uppercase; letter-spacing
 .tokenrad { display: flex; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--linje); }
 .tokenrad input { flex: 1; min-width: 0; background: var(--yta2); border: 1px solid var(--linje); border-radius: 8px; padding: 8px 10px; }
 .tokenrad[hidden] { display: none; }
+.landkod-grupp { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.flagga { font-size: 15px; line-height: 1; }

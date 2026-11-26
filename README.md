@@ -60,6 +60,17 @@ Mobilanpassad samlingssida för längdskidor, skidskytte, Tour de Ski, VM, SM, S
    (glöm inte kommatecknet mellan raderna) och ändra `"standard"` till `"2027-28"`.
 3. Säsongsväljaren uppe till höger dyker då upp med båda säsongerna.
 
+## Automatiska starttider (längdskidor)
+
+Två gånger per dygn (ca 06:41 och 16:41 svensk tid) hämtar GitHub starttiderna för kommande världscup-, Tour de Ski- och VM-lopp i längd från FIS och lägger in dem i tablån automatiskt (`scripts/uppdatera-tider.mjs`).
+
+- Bara längdrader **utan tid**, med **preliminär tid** eller som redan **fyllts i automatiskt** rörs. Tider som lagts in för hand ändras aldrig.
+- En dag uppdateras först när FIS publicerat alla dagens lopp.
+- Ändras en tid hos FIS ändras den i tablån vid nästa körning.
+- Tiden är loppets start enligt FIS – sändningen börjar ofta en stund före.
+- Vad som ändrades senast står i `data/senaste-tidsuppdatering.txt`.
+- TV-kanal och skidskyttets tider (från SVT) uppdateras inte automatiskt.
+
 ## Resultat och cupställningar
 
 Fliken **Resultat** fylls på automatiskt. Var 20:e minut kör GitHub ett litet program (`scripts/hamta-resultat.mjs`) som hämtar:

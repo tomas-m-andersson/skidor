@@ -1,0 +1,47 @@
+# Fyller i och uppdaterar starttider för längdskidor (världscup, Tour de Ski, VM)
+# från FIS två gånger per dygn. Se scripts/uppdatera-tider.mjs för reglerna.
+name: Uppdatera tider
+
+on:
+  schedule:
+    - cron: '41 5 * * *'
+    - cron: '41 15 * * *'
+  workflow_dispatch: {}
+  push:
+    branches: [tider-test]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data
+  cancel-in-progress: false
+
+jobs:
+  tider:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Hämta tider från FIS
+        run: |
+          if [ "${{ github.ref_name }}" = "tider-test" ]; then
+            node scripts/uppdatera-tider.mjs --torrkor 2>&1 | tee data/tider-test.log
+          else
+            node scripts/uppdatera-tider.mjs
+          fi
+      - name: Spara om något ändrats
+        run: |
+          git config user.name "skidor-tider"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "Inget nytt att spara."
+          else
+            git commit -m "Uppdatera tider från FIS"
+            git pull --rebase --quiet
+            git push
+          fi
